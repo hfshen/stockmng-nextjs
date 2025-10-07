@@ -107,14 +107,14 @@ export default function Import() {
                 const { data: newOrder, error: insertError } = await supabase
                   .from('order_register')
                   .insert({
-                    company: row['업체명'],
-                    chajong: row['차종'],
-                    pumbeon: row['품번'],
-                    pm: row['품명'] || '',
-                    in_qty: parseInt(row['입고수량']) || 0,
-                    out_qty: parseInt(row['반출수량']) || 0,
-                    order_qty: parseInt(row['발주수량']) || 0,
-                    remark: row['비고'] || ''
+                    company: String(row['업체명']),
+                    chajong: String(row['차종']),
+                    pumbeon: String(row['품번']),
+                    pm: String(row['품명'] || ''),
+                    in_qty: parseInt(String(row['입고수량'])) || 0,
+                    out_qty: parseInt(String(row['반출수량'])) || 0,
+                    order_qty: parseInt(String(row['발주수량'])) || 0,
+                    remark: String(row['비고'] || '')
                   })
                   .select('id')
                   .single()
@@ -130,10 +130,10 @@ export default function Import() {
                 .upsert({
                   year_month: currentMonth,
                   order_id: orderId,
-                  in_qty: parseInt(row['입고수량']) || 0,
-                  out_qty: parseInt(row['반출수량']) || 0,
-                  stock_qty: (parseInt(row['입고수량']) || 0) - (parseInt(row['반출수량']) || 0),
-                  order_qty: parseInt(row['발주수량']) || 0
+                  in_qty: parseInt(String(row['입고수량'])) || 0,
+                  out_qty: parseInt(String(row['반출수량'])) || 0,
+                  stock_qty: (parseInt(String(row['입고수량'])) || 0) - (parseInt(String(row['반출수량'])) || 0),
+                  order_qty: parseInt(String(row['발주수량'])) || 0
                 })
 
               if (monthlyError) throw monthlyError
