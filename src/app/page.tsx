@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Search, Plus, Download } from 'lucide-react'
 import { supabase, InventoryItem } from '@/lib/supabase'
 import Link from 'next/link'
@@ -30,7 +30,7 @@ export default function Home() {
   }
 
   // 데이터 로드
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       setLoading(true)
       
@@ -83,7 +83,7 @@ export default function Home() {
       }) ?? []
 
       // 필터링
-      let filteredData = inventoryData.filter(item => {
+      const filteredData = inventoryData.filter(item => {
         if (filters.company && !item.company.includes(filters.company)) return false
         if (filters.chajong && !item.chajong.includes(filters.chajong)) return false
         if (filters.pumbeon && !item.pumbeon.includes(filters.pumbeon)) return false
@@ -99,8 +99,8 @@ export default function Home() {
 
       // 정렬
       filteredData.sort((a, b) => {
-        let aValue: any = a[sortBy as keyof InventoryItem]
-        let bValue: any = b[sortBy as keyof InventoryItem]
+        let aValue: string | number = a[sortBy as keyof InventoryItem] as string | number
+        let bValue: string | number = b[sortBy as keyof InventoryItem] as string | number
         
         if (typeof aValue === 'string') {
           aValue = aValue.toLowerCase()
@@ -162,10 +162,10 @@ export default function Home() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [filters, sortBy, sortOrder])
 
   // 업체 목록 로드
-  const loadCompanies = async () => {
+  const loadCompanies = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('order_register')
@@ -181,10 +181,10 @@ export default function Home() {
       console.error('업체 목록 로드 오류:', error)
       setCompanies(['명진', '선경내셔날'])
     }
-  }
+  }, [])
 
   // 월별 목록 로드
-  const loadMonths = async () => {
+  const loadMonths = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('monthly_data')
@@ -199,7 +199,7 @@ export default function Home() {
       console.error('월별 목록 로드 오류:', error)
       setMonths([getCurrentMonth()])
     }
-  }
+  }, [])
 
   // CSV 내보내기
   const exportCSV = () => {
@@ -235,7 +235,7 @@ export default function Home() {
     loadData()
     loadCompanies()
     loadMonths()
-  }, [filters, sortBy, sortOrder])
+  }, [loadData, loadCompanies, loadMonths])
 
   const getShortageColor = (shortage: string) => {
     if (shortage.startsWith('+')) return 'text-green-600'

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts'
 import { TrendingUp, TrendingDown, Package, AlertTriangle, Warehouse, Calendar } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
@@ -36,7 +36,7 @@ export default function Dashboard() {
 
   const COLORS = ['#0088FE', '#00C49F', '#FFBB28', '#FF8042', '#8884D8', '#82CA9D']
 
-  const loadDashboardStats = async () => {
+  const loadDashboardStats = useCallback(async () => {
     try {
       setLoading(true)
       
@@ -146,11 +146,11 @@ export default function Dashboard() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [selectedMonth])
 
   useEffect(() => {
     loadDashboardStats()
-  }, [selectedMonth, loadDashboardStats])
+  }, [loadDashboardStats])
 
   if (loading) {
     return (
