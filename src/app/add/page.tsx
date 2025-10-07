@@ -123,17 +123,6 @@ export default function AddItem() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* 헤더 */}
-      <nav className="bg-blue-600 text-white shadow-lg">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <Warehouse className="h-8 w-8 mr-2" />
-              <h1 className="text-xl font-bold">㈜다성 입고관리 Tool</h1>
-            </div>
-          </div>
-        </div>
-      </nav>
 
       {/* 메인 컨텐츠 */}
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">

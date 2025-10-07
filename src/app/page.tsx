@@ -214,42 +214,33 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* 헤더 */}
-      <nav className="bg-blue-600 text-white shadow-lg">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center h-16">
-            <div className="flex items-center">
-              <Warehouse className="h-8 w-8 mr-2" />
-              <h1 className="text-xl font-bold">㈜다성 입고관리 Tool</h1>
-            </div>
-            <div className="flex items-center space-x-4">
-              <Link
-                href="/add"
-                className="flex items-center px-4 py-2 bg-blue-500 hover:bg-blue-400 rounded-md transition-colors"
-              >
-                <Plus className="h-4 w-4 mr-1" />
-                입고등록
-              </Link>
-              <button
-                onClick={exportCSV}
-                className="flex items-center px-4 py-2 bg-green-500 hover:bg-green-400 rounded-md transition-colors"
-              >
-                <Download className="h-4 w-4 mr-1" />
-                내보내기
-              </button>
-            </div>
-          </div>
-        </div>
-      </nav>
 
       {/* 메인 컨텐츠 */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="bg-white rounded-lg shadow-lg">
           <div className="p-6">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
-              <Search className="h-6 w-6 mr-2" />
-              재고 현황
-            </h2>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold text-gray-900 flex items-center">
+                <Search className="h-6 w-6 mr-2" />
+                재고 현황
+              </h2>
+              <div className="flex items-center space-x-4">
+                <Link
+                  href="/add"
+                  className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                >
+                  <Plus className="h-4 w-4 mr-1" />
+                  입고등록
+                </Link>
+                <button
+                  onClick={exportCSV}
+                  className="flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+                >
+                  <Download className="h-4 w-4 mr-1" />
+                  내보내기
+                </button>
+              </div>
+            </div>
 
             {/* 검색 필터 */}
             <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
