@@ -14,8 +14,15 @@ export default function Home() {
     month: new Date().toISOString().slice(0, 7),
     company: '',
     chajong: '',
-    pumbeon: ''
+    pumbeon: '',
+    stockMin: '',
+    stockMax: '',
+    orderMin: '',
+    orderMax: ''
   })
+  const [showAdvancedFilters, setShowAdvancedFilters] = useState(false)
+  const [sortBy, setSortBy] = useState('company')
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc')
 
   // 현재 월 문자열 생성
   const getCurrentMonth = () => {
@@ -76,11 +83,35 @@ export default function Home() {
       }) ?? []
 
       // 필터링
-      const filteredData = inventoryData.filter(item => {
+      let filteredData = inventoryData.filter(item => {
         if (filters.company && !item.company.includes(filters.company)) return false
         if (filters.chajong && !item.chajong.includes(filters.chajong)) return false
         if (filters.pumbeon && !item.pumbeon.includes(filters.pumbeon)) return false
+        
+        // 고급 필터링
+        if (filters.stockMin && item.stock_qty < parseInt(filters.stockMin)) return false
+        if (filters.stockMax && item.stock_qty > parseInt(filters.stockMax)) return false
+        if (filters.orderMin && item.order_qty < parseInt(filters.orderMin)) return false
+        if (filters.orderMax && item.order_qty > parseInt(filters.orderMax)) return false
+        
         return true
+      })
+
+      // 정렬
+      filteredData.sort((a, b) => {
+        let aValue: any = a[sortBy as keyof InventoryItem]
+        let bValue: any = b[sortBy as keyof InventoryItem]
+        
+        if (typeof aValue === 'string') {
+          aValue = aValue.toLowerCase()
+          bValue = bValue.toLowerCase()
+        }
+        
+        if (sortOrder === 'asc') {
+          return aValue < bValue ? -1 : aValue > bValue ? 1 : 0
+        } else {
+          return aValue > bValue ? -1 : aValue < bValue ? 1 : 0
+        }
       })
 
       setData(filteredData)
@@ -243,60 +274,148 @@ export default function Home() {
             </div>
 
             {/* 검색 필터 */}
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">월별</label>
-                <select
-                  value={filters.month}
-                  onChange={(e) => setFilters(prev => ({ ...prev, month: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  {months.map(month => (
-                    <option key={month} value={month}>{month}</option>
-                  ))}
-                </select>
+            <div className="space-y-4 mb-6">
+              {/* 기본 필터 */}
+              <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">월별</label>
+                  <select
+                    value={filters.month}
+                    onChange={(e) => setFilters(prev => ({ ...prev, month: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    {months.map(month => (
+                      <option key={month} value={month}>{month}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">업체명</label>
+                  <select
+                    value={filters.company}
+                    onChange={(e) => setFilters(prev => ({ ...prev, company: e.target.value }))}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="">전체</option>
+                    {companies.map(company => (
+                      <option key={company} value={company}>{company}</option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">차종</label>
+                  <input
+                    type="text"
+                    value={filters.chajong}
+                    onChange={(e) => setFilters(prev => ({ ...prev, chajong: e.target.value }))}
+                    placeholder="차종 입력"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">품번</label>
+                  <input
+                    type="text"
+                    value={filters.pumbeon}
+                    onChange={(e) => setFilters(prev => ({ ...prev, pumbeon: e.target.value }))}
+                    placeholder="품번 입력"
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  />
+                </div>
+                <div className="flex items-end space-x-2">
+                  <button
+                    onClick={loadData}
+                    className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center justify-center"
+                  >
+                    <Search className="h-4 w-4 mr-1" />
+                    조회
+                  </button>
+                  <button
+                    onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
+                    className="px-3 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors"
+                  >
+                    고급
+                  </button>
+                </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">업체명</label>
-                <select
-                  value={filters.company}
-                  onChange={(e) => setFilters(prev => ({ ...prev, company: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="">전체</option>
-                  {companies.map(company => (
-                    <option key={company} value={company}>{company}</option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">차종</label>
-                <input
-                  type="text"
-                  value={filters.chajong}
-                  onChange={(e) => setFilters(prev => ({ ...prev, chajong: e.target.value }))}
-                  placeholder="차종 입력"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">품번</label>
-                <input
-                  type="text"
-                  value={filters.pumbeon}
-                  onChange={(e) => setFilters(prev => ({ ...prev, pumbeon: e.target.value }))}
-                  placeholder="품번 입력"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-              <div className="flex items-end">
-                <button
-                  onClick={loadData}
-                  className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center justify-center"
-                >
-                  <Search className="h-4 w-4 mr-1" />
-                  조회
-                </button>
+
+              {/* 고급 필터 */}
+              {showAdvancedFilters && (
+                <div className="bg-gray-50 p-4 rounded-lg">
+                  <h4 className="text-sm font-medium text-gray-700 mb-3">고급 필터</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">재고 최소</label>
+                      <input
+                        type="number"
+                        value={filters.stockMin}
+                        onChange={(e) => setFilters(prev => ({ ...prev, stockMin: e.target.value }))}
+                        placeholder="0"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">재고 최대</label>
+                      <input
+                        type="number"
+                        value={filters.stockMax}
+                        onChange={(e) => setFilters(prev => ({ ...prev, stockMax: e.target.value }))}
+                        placeholder="9999"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">발주 최소</label>
+                      <input
+                        type="number"
+                        value={filters.orderMin}
+                        onChange={(e) => setFilters(prev => ({ ...prev, orderMin: e.target.value }))}
+                        placeholder="0"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">발주 최대</label>
+                      <input
+                        type="number"
+                        value={filters.orderMax}
+                        onChange={(e) => setFilters(prev => ({ ...prev, orderMax: e.target.value }))}
+                        placeholder="9999"
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* 정렬 옵션 */}
+              <div className="flex items-center space-x-4">
+                <div className="flex items-center space-x-2">
+                  <label className="text-sm font-medium text-gray-700">정렬:</label>
+                  <select
+                    value={sortBy}
+                    onChange={(e) => setSortBy(e.target.value)}
+                    className="px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  >
+                    <option value="company">업체명</option>
+                    <option value="chajong">차종</option>
+                    <option value="pumbeon">품번</option>
+                    <option value="pm">품명</option>
+                    <option value="in_qty">입고</option>
+                    <option value="stock_qty">재고</option>
+                    <option value="order_qty">발주수량</option>
+                    <option value="out_qty">반출</option>
+                  </select>
+                  <button
+                    onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+                    className="px-3 py-1 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors"
+                  >
+                    {sortOrder === 'asc' ? '↑' : '↓'}
+                  </button>
+                </div>
+                <div className="text-sm text-gray-600">
+                  총 {data.length}개 항목
+                </div>
               </div>
             </div>
 
@@ -305,16 +424,120 @@ export default function Home() {
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">업체명</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">차종</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">품번</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">품명</th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">입고</th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">재고</th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">미입고/과입고</th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">발주수량</th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">반출</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">비고</th>
+                    <th 
+                      className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[120px] cursor-pointer hover:bg-gray-100"
+                      onClick={() => {
+                        setSortBy('company')
+                        setSortOrder(sortBy === 'company' && sortOrder === 'asc' ? 'desc' : 'asc')
+                      }}
+                    >
+                      <div className="flex items-center">
+                        업체명
+                        {sortBy === 'company' && (
+                          <span className="ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>
+                        )}
+                      </div>
+                    </th>
+                    <th 
+                      className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[200px] cursor-pointer hover:bg-gray-100"
+                      onClick={() => {
+                        setSortBy('chajong')
+                        setSortOrder(sortBy === 'chajong' && sortOrder === 'asc' ? 'desc' : 'asc')
+                      }}
+                    >
+                      <div className="flex items-center">
+                        차종
+                        {sortBy === 'chajong' && (
+                          <span className="ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>
+                        )}
+                      </div>
+                    </th>
+                    <th 
+                      className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[180px] cursor-pointer hover:bg-gray-100"
+                      onClick={() => {
+                        setSortBy('pumbeon')
+                        setSortOrder(sortBy === 'pumbeon' && sortOrder === 'asc' ? 'desc' : 'asc')
+                      }}
+                    >
+                      <div className="flex items-center">
+                        품번
+                        {sortBy === 'pumbeon' && (
+                          <span className="ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>
+                        )}
+                      </div>
+                    </th>
+                    <th 
+                      className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[250px] cursor-pointer hover:bg-gray-100"
+                      onClick={() => {
+                        setSortBy('pm')
+                        setSortOrder(sortBy === 'pm' && sortOrder === 'asc' ? 'desc' : 'asc')
+                      }}
+                    >
+                      <div className="flex items-center">
+                        품명
+                        {sortBy === 'pm' && (
+                          <span className="ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>
+                        )}
+                      </div>
+                    </th>
+                    <th 
+                      className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[80px] cursor-pointer hover:bg-gray-100"
+                      onClick={() => {
+                        setSortBy('in_qty')
+                        setSortOrder(sortBy === 'in_qty' && sortOrder === 'asc' ? 'desc' : 'asc')
+                      }}
+                    >
+                      <div className="flex items-center justify-end">
+                        입고
+                        {sortBy === 'in_qty' && (
+                          <span className="ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>
+                        )}
+                      </div>
+                    </th>
+                    <th 
+                      className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[80px] cursor-pointer hover:bg-gray-100"
+                      onClick={() => {
+                        setSortBy('stock_qty')
+                        setSortOrder(sortBy === 'stock_qty' && sortOrder === 'asc' ? 'desc' : 'asc')
+                      }}
+                    >
+                      <div className="flex items-center justify-end">
+                        재고
+                        {sortBy === 'stock_qty' && (
+                          <span className="ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>
+                        )}
+                      </div>
+                    </th>
+                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[120px]">미입고/과입고</th>
+                    <th 
+                      className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[80px] cursor-pointer hover:bg-gray-100"
+                      onClick={() => {
+                        setSortBy('order_qty')
+                        setSortOrder(sortBy === 'order_qty' && sortOrder === 'asc' ? 'desc' : 'asc')
+                      }}
+                    >
+                      <div className="flex items-center justify-end">
+                        발주수량
+                        {sortBy === 'order_qty' && (
+                          <span className="ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>
+                        )}
+                      </div>
+                    </th>
+                    <th 
+                      className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[80px] cursor-pointer hover:bg-gray-100"
+                      onClick={() => {
+                        setSortBy('out_qty')
+                        setSortOrder(sortBy === 'out_qty' && sortOrder === 'asc' ? 'desc' : 'asc')
+                      }}
+                    >
+                      <div className="flex items-center justify-end">
+                        반출
+                        {sortBy === 'out_qty' && (
+                          <span className="ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>
+                        )}
+                      </div>
+                    </th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[150px]">비고</th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
@@ -333,18 +556,26 @@ export default function Home() {
                   ) : (
                     data.map((item) => (
                       <tr key={item.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{item.company}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{item.chajong}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{item.pumbeon}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{item.pm}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">{item.in_qty}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">{item.stock_qty}</td>
-                        <td className={`px-6 py-4 whitespace-nowrap text-sm text-right font-medium ${getShortageColor(item.in_shortage)}`}>
+                        <td className="px-4 py-4 text-sm text-gray-900 break-words">{item.company}</td>
+                        <td className="px-4 py-4 text-sm text-gray-900 break-words" title={item.chajong}>
+                          <div className="max-w-[200px] truncate">{item.chajong}</div>
+                        </td>
+                        <td className="px-4 py-4 text-sm text-gray-900 break-words" title={item.pumbeon}>
+                          <div className="max-w-[180px] truncate">{item.pumbeon}</div>
+                        </td>
+                        <td className="px-4 py-4 text-sm text-gray-900 break-words" title={item.pm}>
+                          <div className="max-w-[250px] truncate">{item.pm}</div>
+                        </td>
+                        <td className="px-4 py-4 text-sm text-gray-900 text-right">{item.in_qty.toLocaleString()}</td>
+                        <td className="px-4 py-4 text-sm text-gray-900 text-right">{item.stock_qty.toLocaleString()}</td>
+                        <td className={`px-4 py-4 text-sm text-right font-medium ${getShortageColor(item.in_shortage)}`}>
                           {item.in_shortage}
                         </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">{item.order_qty}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 text-right">{item.out_qty}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{item.remark}</td>
+                        <td className="px-4 py-4 text-sm text-gray-900 text-right">{item.order_qty.toLocaleString()}</td>
+                        <td className="px-4 py-4 text-sm text-gray-900 text-right">{item.out_qty.toLocaleString()}</td>
+                        <td className="px-4 py-4 text-sm text-gray-900 break-words" title={item.remark}>
+                          <div className="max-w-[150px] truncate">{item.remark}</div>
+                        </td>
                       </tr>
                     ))
                   )}
