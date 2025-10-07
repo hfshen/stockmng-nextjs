@@ -102,7 +102,7 @@ export default function Home() {
         let aValue: string | number = a[sortBy as keyof InventoryItem] as string | number
         let bValue: string | number = b[sortBy as keyof InventoryItem] as string | number
         
-        if (typeof aValue === 'string') {
+        if (typeof aValue === 'string' && typeof bValue === 'string') {
           aValue = aValue.toLowerCase()
           bValue = bValue.toLowerCase()
         }
