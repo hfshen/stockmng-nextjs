@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Search, Plus, Download, Warehouse } from 'lucide-react'
+import { Search, Plus, Download } from 'lucide-react'
 import { supabase, InventoryItem } from '@/lib/supabase'
 import Link from 'next/link'
 
@@ -235,7 +235,7 @@ export default function Home() {
     loadData()
     loadCompanies()
     loadMonths()
-  }, [filters])
+  }, [filters, sortBy, sortOrder])
 
   const getShortageColor = (shortage: string) => {
     if (shortage.startsWith('+')) return 'text-green-600'
@@ -250,22 +250,22 @@ export default function Home() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="bg-white rounded-lg shadow-lg">
           <div className="p-6">
-            <div className="flex justify-between items-center mb-6">
-              <h2 className="text-2xl font-bold text-gray-900 flex items-center">
-                <Search className="h-6 w-6 mr-2" />
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 space-y-4 sm:space-y-0">
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 flex items-center">
+                <Search className="h-5 w-5 sm:h-6 sm:w-6 mr-2" />
                 재고 현황
               </h2>
-              <div className="flex items-center space-x-4">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
                 <Link
                   href="/add"
-                  className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                  className="flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm"
                 >
                   <Plus className="h-4 w-4 mr-1" />
                   입고등록
                 </Link>
                 <button
                   onClick={exportCSV}
-                  className="flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors"
+                  className="flex items-center justify-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm"
                 >
                   <Download className="h-4 w-4 mr-1" />
                   내보내기
@@ -276,7 +276,7 @@ export default function Home() {
             {/* 검색 필터 */}
             <div className="space-y-4 mb-6">
               {/* 기본 필터 */}
-              <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">월별</label>
                   <select
@@ -288,7 +288,7 @@ export default function Home() {
                       <option key={month} value={month}>{month}</option>
                     ))}
                   </select>
-                </div>
+        </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">업체명</label>
                   <select
@@ -322,17 +322,17 @@ export default function Home() {
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
                 </div>
-                <div className="flex items-end space-x-2">
+                <div className="flex flex-col sm:flex-row items-stretch sm:items-end space-y-2 sm:space-y-0 sm:space-x-2">
                   <button
                     onClick={loadData}
-                    className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center justify-center"
+                    className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center justify-center text-sm"
                   >
                     <Search className="h-4 w-4 mr-1" />
                     조회
                   </button>
                   <button
                     onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-                    className="px-3 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors"
+                    className="px-3 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors text-sm"
                   >
                     고급
                   </button>
@@ -343,7 +343,7 @@ export default function Home() {
               {showAdvancedFilters && (
                 <div className="bg-gray-50 p-4 rounded-lg">
                   <h4 className="text-sm font-medium text-gray-700 mb-3">고급 필터</h4>
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 mb-1">재고 최소</label>
                       <input
@@ -389,13 +389,13 @@ export default function Home() {
               )}
 
               {/* 정렬 옵션 */}
-              <div className="flex items-center space-x-4">
+              <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
                 <div className="flex items-center space-x-2">
                   <label className="text-sm font-medium text-gray-700">정렬:</label>
                   <select
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value)}
-                    className="px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                   >
                     <option value="company">업체명</option>
                     <option value="chajong">차종</option>
@@ -408,7 +408,7 @@ export default function Home() {
                   </select>
                   <button
                     onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-                    className="px-3 py-1 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors"
+                    className="px-3 py-1 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors text-sm"
                   >
                     {sortOrder === 'asc' ? '↑' : '↓'}
                   </button>
@@ -420,12 +420,12 @@ export default function Home() {
             </div>
 
             {/* 데이터 테이블 */}
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto shadow ring-1 ring-black ring-opacity-5 rounded-lg">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-gray-50">
                   <tr>
                     <th 
-                      className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[120px] cursor-pointer hover:bg-gray-100"
+                      className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[100px] sm:min-w-[120px] cursor-pointer hover:bg-gray-100"
                       onClick={() => {
                         setSortBy('company')
                         setSortOrder(sortBy === 'company' && sortOrder === 'asc' ? 'desc' : 'asc')
@@ -556,25 +556,25 @@ export default function Home() {
                   ) : (
                     data.map((item) => (
                       <tr key={item.id} className="hover:bg-gray-50">
-                        <td className="px-4 py-4 text-sm text-gray-900 break-words">{item.company}</td>
-                        <td className="px-4 py-4 text-sm text-gray-900 break-words" title={item.chajong}>
-                          <div className="max-w-[200px] truncate">{item.chajong}</div>
+                        <td className="px-2 sm:px-4 py-3 sm:py-4 text-xs sm:text-sm text-gray-900 break-words">{item.company}</td>
+                        <td className="px-2 sm:px-4 py-3 sm:py-4 text-xs sm:text-sm text-gray-900 break-words" title={item.chajong}>
+                          <div className="max-w-[150px] sm:max-w-[200px] truncate">{item.chajong}</div>
                         </td>
-                        <td className="px-4 py-4 text-sm text-gray-900 break-words" title={item.pumbeon}>
-                          <div className="max-w-[180px] truncate">{item.pumbeon}</div>
+                        <td className="px-2 sm:px-4 py-3 sm:py-4 text-xs sm:text-sm text-gray-900 break-words" title={item.pumbeon}>
+                          <div className="max-w-[130px] sm:max-w-[180px] truncate">{item.pumbeon}</div>
                         </td>
-                        <td className="px-4 py-4 text-sm text-gray-900 break-words" title={item.pm}>
-                          <div className="max-w-[250px] truncate">{item.pm}</div>
+                        <td className="px-2 sm:px-4 py-3 sm:py-4 text-xs sm:text-sm text-gray-900 break-words" title={item.pm}>
+                          <div className="max-w-[200px] sm:max-w-[250px] truncate">{item.pm}</div>
                         </td>
-                        <td className="px-4 py-4 text-sm text-gray-900 text-right">{item.in_qty.toLocaleString()}</td>
-                        <td className="px-4 py-4 text-sm text-gray-900 text-right">{item.stock_qty.toLocaleString()}</td>
-                        <td className={`px-4 py-4 text-sm text-right font-medium ${getShortageColor(item.in_shortage)}`}>
+                        <td className="px-2 sm:px-4 py-3 sm:py-4 text-xs sm:text-sm text-gray-900 text-right">{item.in_qty.toLocaleString()}</td>
+                        <td className="px-2 sm:px-4 py-3 sm:py-4 text-xs sm:text-sm text-gray-900 text-right">{item.stock_qty.toLocaleString()}</td>
+                        <td className={`px-2 sm:px-4 py-3 sm:py-4 text-xs sm:text-sm text-right font-medium ${getShortageColor(item.in_shortage)}`}>
                           {item.in_shortage}
                         </td>
-                        <td className="px-4 py-4 text-sm text-gray-900 text-right">{item.order_qty.toLocaleString()}</td>
-                        <td className="px-4 py-4 text-sm text-gray-900 text-right">{item.out_qty.toLocaleString()}</td>
-                        <td className="px-4 py-4 text-sm text-gray-900 break-words" title={item.remark}>
-                          <div className="max-w-[150px] truncate">{item.remark}</div>
+                        <td className="px-2 sm:px-4 py-3 sm:py-4 text-xs sm:text-sm text-gray-900 text-right">{item.order_qty.toLocaleString()}</td>
+                        <td className="px-2 sm:px-4 py-3 sm:py-4 text-xs sm:text-sm text-gray-900 text-right">{item.out_qty.toLocaleString()}</td>
+                        <td className="px-2 sm:px-4 py-3 sm:py-4 text-xs sm:text-sm text-gray-900 break-words" title={item.remark}>
+                          <div className="max-w-[120px] sm:max-w-[150px] truncate">{item.remark}</div>
                         </td>
                       </tr>
                     ))

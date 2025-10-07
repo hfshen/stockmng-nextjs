@@ -1,15 +1,17 @@
 'use client'
 
+import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { 
   Home, 
   Plus, 
-  Download, 
   BarChart3, 
   Bell, 
   Upload,
-  Warehouse
+  Warehouse,
+  Menu,
+  X
 } from 'lucide-react'
 
 const navigation = [
@@ -22,6 +24,7 @@ const navigation = [
 
 export default function Navigation() {
   const pathname = usePathname()
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
   return (
     <nav className="bg-white shadow-lg border-b">
@@ -30,11 +33,12 @@ export default function Navigation() {
           <div className="flex items-center">
             <Link href="/" className="flex items-center">
               <Warehouse className="h-8 w-8 text-blue-600 mr-2" />
-              <span className="text-xl font-bold text-gray-900">㈜다성 입고관리 Tool</span>
+              <span className="text-lg sm:text-xl font-bold text-gray-900">㈜다성 입고관리 Tool</span>
             </Link>
           </div>
           
-          <div className="flex items-center space-x-1">
+          {/* 데스크톱 메뉴 */}
+          <div className="hidden md:flex items-center space-x-1">
             {navigation.map((item) => {
               const isActive = pathname === item.href
               return (
@@ -53,7 +57,47 @@ export default function Navigation() {
               )
             })}
           </div>
+
+          {/* 모바일 메뉴 버튼 */}
+          <div className="md:hidden flex items-center">
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+            >
+              {isMobileMenuOpen ? (
+                <X className="h-6 w-6" />
+              ) : (
+                <Menu className="h-6 w-6" />
+              )}
+            </button>
+          </div>
         </div>
+
+        {/* 모바일 메뉴 */}
+        {isMobileMenuOpen && (
+          <div className="md:hidden">
+            <div className="px-2 pt-2 pb-3 space-y-1 bg-white border-t">
+              {navigation.map((item) => {
+                const isActive = pathname === item.href
+                return (
+                  <Link
+                    key={item.name}
+                    href={item.href}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                    className={`flex items-center px-3 py-2 rounded-md text-base font-medium transition-colors ${
+                      isActive
+                        ? 'bg-blue-100 text-blue-700'
+                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
+                    }`}
+                  >
+                    <item.icon className="h-5 w-5 mr-3" />
+                    {item.name}
+                  </Link>
+                )
+              })}
+            </div>
+          </div>
+        )}
       </div>
     </nav>
   )

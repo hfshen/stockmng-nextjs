@@ -150,7 +150,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     loadDashboardStats()
-  }, [selectedMonth])
+  }, [selectedMonth, loadDashboardStats])
 
   if (loading) {
     return (
@@ -200,7 +200,7 @@ export default function Dashboard() {
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* 주요 통계 카드 */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
           <div className="bg-white rounded-lg shadow p-6">
             <div className="flex items-center">
               <div className="p-2 bg-blue-100 rounded-lg">
@@ -251,7 +251,7 @@ export default function Dashboard() {
         </div>
 
         {/* 월별 입출고 현황 */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-8">
           <div className="bg-white rounded-lg shadow p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">월별 입출고 현황</h3>
             <ResponsiveContainer width="100%" height={300}>
@@ -281,7 +281,7 @@ export default function Dashboard() {
         </div>
 
         {/* 카테고리별 분포 및 상세 통계 */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
           <div className="bg-white rounded-lg shadow p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">카테고리별 분포</h3>
             <ResponsiveContainer width="100%" height={300}>

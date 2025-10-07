@@ -15,7 +15,7 @@ export default function Import() {
   const [file, setFile] = useState<File | null>(null)
   const [uploading, setUploading] = useState(false)
   const [result, setResult] = useState<UploadResult | null>(null)
-  const [preview, setPreview] = useState<any[]>([])
+  const [preview, setPreview] = useState<string[][]>([])
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0]
@@ -35,7 +35,7 @@ export default function Import() {
           const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 })
           
           // 첫 5행만 미리보기
-          setPreview(jsonData.slice(0, 5) as any[])
+          setPreview(jsonData.slice(0, 5) as string[][])
         } catch (error) {
           console.error('파일 읽기 오류:', error)
         }
@@ -80,7 +80,7 @@ export default function Import() {
           const errors: string[] = []
 
           for (let i = 0; i < jsonData.length; i++) {
-            const row = jsonData[i] as any
+            const row = jsonData[i] as Record<string, string | number>
             try {
               // 필수 필드 검증
               if (!row['업체명'] || !row['차종'] || !row['품번']) {
@@ -231,7 +231,7 @@ export default function Import() {
                 <table className="min-w-full divide-y divide-gray-200">
                   <thead className="bg-gray-50">
                     <tr>
-                      {preview[0]?.map((header: string, index: number) => (
+                      {preview[0]?.map((header: string | number, index: number) => (
                         <th key={index} className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">
                           {header}
                         </th>
@@ -239,9 +239,9 @@ export default function Import() {
                     </tr>
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
-                    {preview.slice(1).map((row: any[], rowIndex: number) => (
+                    {preview.slice(1).map((row: (string | number)[], rowIndex: number) => (
                       <tr key={rowIndex}>
-                        {row.map((cell: any, cellIndex: number) => (
+                        {row.map((cell: string | number, cellIndex: number) => (
                           <td key={cellIndex} className="px-3 py-2 text-sm text-gray-900">
                             {cell}
                           </td>
