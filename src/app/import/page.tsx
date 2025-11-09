@@ -62,10 +62,29 @@ export default function Import() {
   const handleUpload = async () => {
     if (!file) return
 
+    // 해당 월의 기존 데이터 삭제 확인
+    const currentMonth = new Date().toISOString().slice(0, 7)
+    const confirmDelete = confirm(
+      `${currentMonth}월의 기존 데이터를 모두 삭제하고 새로 업로드하시겠습니까?`
+    )
+    
+    if (!confirmDelete) return
+
     setUploading(true)
     setResult(null)
 
     try {
+      // 해당 월의 기존 monthly_data 삭제
+      const { error: deleteError } = await supabase
+        .from('monthly_data')
+        .delete()
+        .eq('year_month', currentMonth)
+
+      if (deleteError) {
+        console.error('기존 데이터 삭제 오류:', deleteError)
+        // 삭제 오류가 있어도 계속 진행
+      }
+
       const reader = new FileReader()
       reader.onload = async (e) => {
         try {
@@ -124,7 +143,6 @@ export default function Import() {
               }
 
               // 월별 데이터 업데이트
-              const currentMonth = new Date().toISOString().slice(0, 7)
               const { error: monthlyError } = await supabase
                 .from('monthly_data')
                 .upsert({

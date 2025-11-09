@@ -55,3 +55,15 @@ export interface InventoryItem {
   out_qty: number
   remark: string
 }
+
+export interface EditHistory {
+  id: number
+  order_id: number
+  user_name: string
+  changed_fields: {
+    field: string
+    old_value: string | number
+    new_value: string | number
+  }[]
+  created_at: string
+}

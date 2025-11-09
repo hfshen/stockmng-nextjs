@@ -1,23 +1,25 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { AlertTriangle, Bell, CheckCircle, XCircle, Package } from 'lucide-react'
-import { supabase, InventoryItem } from '@/lib/supabase'
+import { AlertTriangle, Bell, CheckCircle, XCircle, Package, Edit } from 'lucide-react'
+import { supabase, InventoryItem, EditHistory } from '@/lib/supabase'
 
 interface Alert {
   id: string
-  type: 'low_stock' | 'out_of_stock' | 'high_demand' | 'expiring_soon'
+  type: 'low_stock' | 'out_of_stock' | 'high_demand' | 'expiring_soon' | 'edit_history'
   title: string
   message: string
-  item: InventoryItem
+  item?: InventoryItem
   priority: 'high' | 'medium' | 'low'
   createdAt: string
+  editHistory?: EditHistory
 }
 
 export default function Alerts() {
   const [alerts, setAlerts] = useState<Alert[]>([])
   const [loading, setLoading] = useState(true)
   const [dismissedAlerts, setDismissedAlerts] = useState<Set<string>>(new Set())
+  const [selectedAlerts, setSelectedAlerts] = useState<Set<string>>(new Set())
 
   const loadAlerts = async () => {
     try {
@@ -39,7 +41,63 @@ export default function Alerts() {
 
       if (monthlyError) throw monthlyError
 
+      // 수정 이력 조회 (최근 24시간)
+      const oneDayAgo = new Date()
+      oneDayAgo.setHours(oneDayAgo.getHours() - 24)
+      
+      const { data: editHistoryData, error: editHistoryError } = await supabase
+        .from('edit_history')
+        .select('*')
+        .gte('created_at', oneDayAgo.toISOString())
+        .order('created_at', { ascending: false })
+
+      if (editHistoryError) {
+        console.error('수정 이력 조회 오류:', editHistoryError)
+      }
+
       const newAlerts: Alert[] = []
+
+      // 수정 이력 알림 추가
+      if (editHistoryData && editHistoryData.length > 0) {
+        for (const history of editHistoryData) {
+          const order = orderData?.find(o => o.id === history.order_id)
+          if (order) {
+            const monthly = monthlyData?.find(m => m.order_id === order.id)
+            const stock = monthly?.stock_qty ?? (order.in_qty - order.out_qty)
+            const order_qty = monthly?.order_qty ?? order.order_qty
+            const in_qty = monthly?.in_qty ?? order.in_qty
+
+            const item: InventoryItem = {
+              id: order.id,
+              company: order.company,
+              chajong: order.chajong,
+              pumbeon: order.pumbeon,
+              pm: order.pm,
+              in_qty,
+              stock_qty: stock,
+              in_shortage: stock <= 0 ? '0' : (order_qty - in_qty).toString(),
+              order_qty,
+              out_qty: monthly?.out_qty ?? order.out_qty,
+              remark: order.remark
+            }
+
+            const changedFieldsText = history.changed_fields
+              .map(f => `${f.field}: ${f.old_value} → ${f.new_value}`)
+              .join(', ')
+
+            newAlerts.push({
+              id: `edit_history_${history.id}`,
+              type: 'edit_history',
+              title: '재고 정보 수정',
+              message: `${order.company} - ${order.pumbeon}의 정보가 수정되었습니다.`,
+              item,
+              priority: 'low',
+              createdAt: history.created_at,
+              editHistory: history
+            })
+          }
+        }
+      }
 
       orderData?.forEach(order => {
         const monthly = monthlyData?.find(m => m.order_id === order.id)
@@ -115,6 +173,47 @@ export default function Alerts() {
 
   const dismissAlert = (alertId: string) => {
     setDismissedAlerts(prev => new Set([...prev, alertId]))
+    setSelectedAlerts(prev => {
+      const newSet = new Set(prev)
+      newSet.delete(alertId)
+      return newSet
+    })
+  }
+
+  const toggleSelectAlert = (alertId: string) => {
+    setSelectedAlerts(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(alertId)) {
+        newSet.delete(alertId)
+      } else {
+        newSet.add(alertId)
+      }
+      return newSet
+    })
+  }
+
+  const selectAllAlerts = () => {
+    if (selectedAlerts.size === activeAlerts.length) {
+      setSelectedAlerts(new Set())
+    } else {
+      setSelectedAlerts(new Set(activeAlerts.map(alert => alert.id)))
+    }
+  }
+
+  const deleteSelectedAlerts = () => {
+    if (selectedAlerts.size === 0) return
+    if (confirm(`선택한 ${selectedAlerts.size}개의 알림을 삭제하시겠습니까?`)) {
+      setDismissedAlerts(prev => new Set([...prev, ...selectedAlerts]))
+      setSelectedAlerts(new Set())
+    }
+  }
+
+  const deleteAllAlerts = () => {
+    if (activeAlerts.length === 0) return
+    if (confirm(`모든 알림(${activeAlerts.length}개)을 삭제하시겠습니까?`)) {
+      setDismissedAlerts(new Set(activeAlerts.map(alert => alert.id)))
+      setSelectedAlerts(new Set())
+    }
   }
 
   const getAlertIcon = (type: Alert['type']) => {
@@ -127,6 +226,8 @@ export default function Alerts() {
         return <Bell className="h-5 w-5 text-blue-500" />
       case 'expiring_soon':
         return <Package className="h-5 w-5 text-orange-500" />
+      case 'edit_history':
+        return <Edit className="h-5 w-5 text-purple-500" />
       default:
         return <Bell className="h-5 w-5 text-gray-500" />
     }
@@ -164,7 +265,24 @@ export default function Alerts() {
             <div className="flex items-center space-x-4">
               <span className="text-sm text-gray-600">
                 총 {activeAlerts.length}개의 알림
+                {selectedAlerts.size > 0 && ` (${selectedAlerts.size}개 선택됨)`}
               </span>
+              {selectedAlerts.size > 0 && (
+                <button
+                  onClick={deleteSelectedAlerts}
+                  className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+                >
+                  선택 삭제
+                </button>
+              )}
+              {activeAlerts.length > 0 && (
+                <button
+                  onClick={deleteAllAlerts}
+                  className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+                >
+                  일괄 삭제
+                </button>
+              )}
               <button
                 onClick={loadAlerts}
                 className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
@@ -190,13 +308,33 @@ export default function Alerts() {
           </div>
         ) : (
           <div className="space-y-4">
+            <div className="flex items-center justify-between mb-4">
+              <label className="flex items-center space-x-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={selectedAlerts.size === activeAlerts.length && activeAlerts.length > 0}
+                  onChange={selectAllAlerts}
+                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                />
+                <span className="text-sm text-gray-700">전체 선택</span>
+              </label>
+            </div>
             {activeAlerts.map((alert) => (
               <div
                 key={alert.id}
-                className={`border rounded-lg p-6 ${getAlertColor(alert.priority)}`}
+                className={`border rounded-lg p-6 ${getAlertColor(alert.priority)} ${
+                  selectedAlerts.has(alert.id) ? 'ring-2 ring-blue-500' : ''
+                }`}
               >
                 <div className="flex items-start justify-between">
-                  <div className="flex items-start space-x-3">
+                  <div className="flex items-start space-x-3 flex-1">
+                    <input
+                      type="checkbox"
+                      checked={selectedAlerts.has(alert.id)}
+                      onChange={() => toggleSelectAlert(alert.id)}
+                      onClick={(e) => e.stopPropagation()}
+                      className="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                    />
                     {getAlertIcon(alert.type)}
                     <div className="flex-1">
                       <div className="flex items-center space-x-2">
@@ -214,49 +352,83 @@ export default function Alerts() {
                       </div>
                       <p className="text-gray-700 mt-1">{alert.message}</p>
                       
-                      {/* 아이템 상세 정보 */}
-                      <div className="mt-4 bg-white rounded-lg p-4 border">
-                        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                          <div>
-                            <span className="font-medium text-gray-500">업체:</span>
-                            <p className="text-gray-900">{alert.item.company}</p>
-                          </div>
-                          <div>
-                            <span className="font-medium text-gray-500">차종:</span>
-                            <p className="text-gray-900">{alert.item.chajong}</p>
-                          </div>
-                          <div>
-                            <span className="font-medium text-gray-500">품번:</span>
-                            <p className="text-gray-900">{alert.item.pumbeon}</p>
-                          </div>
-                          <div>
-                            <span className="font-medium text-gray-500">현재 재고:</span>
-                            <p className="text-gray-900">{alert.item.stock_qty}</p>
-                          </div>
-                          <div>
-                            <span className="font-medium text-gray-500">발주량:</span>
-                            <p className="text-gray-900">{alert.item.order_qty}</p>
-                          </div>
-                          <div>
-                            <span className="font-medium text-gray-500">입고량:</span>
-                            <p className="text-gray-900">{alert.item.in_qty}</p>
-                          </div>
-                          <div>
-                            <span className="font-medium text-gray-500">반출량:</span>
-                            <p className="text-gray-900">{alert.item.out_qty}</p>
-                          </div>
-                          <div>
-                            <span className="font-medium text-gray-500">미입고/과입고:</span>
-                            <p className={`font-medium ${
-                              alert.item.in_shortage.startsWith('+') ? 'text-green-600' :
-                              alert.item.in_shortage.startsWith('-') ? 'text-red-600' :
-                              'text-gray-600'
-                            }`}>
-                              {alert.item.in_shortage}
-                            </p>
+                      {/* 수정 이력 정보 */}
+                      {alert.type === 'edit_history' && alert.editHistory && (
+                        <div className="mt-4 bg-purple-50 rounded-lg p-4 border border-purple-200">
+                          <h4 className="font-semibold text-purple-900 mb-2">수정 내역</h4>
+                          <div className="space-y-2 text-sm">
+                            <div>
+                              <span className="font-medium text-purple-700">수정자:</span>
+                              <span className="ml-2 text-purple-900">{alert.editHistory.user_name}</span>
+                            </div>
+                            <div>
+                              <span className="font-medium text-purple-700">수정 시간:</span>
+                              <span className="ml-2 text-purple-900">
+                                {new Date(alert.editHistory.created_at).toLocaleString('ko-KR')}
+                              </span>
+                            </div>
+                            <div>
+                              <span className="font-medium text-purple-700">변경 내용:</span>
+                              <div className="mt-1 space-y-1">
+                                {alert.editHistory.changed_fields.map((field, index) => (
+                                  <div key={index} className="bg-white rounded p-2 border border-purple-100">
+                                    <span className="font-medium text-purple-800">{field.field}:</span>
+                                    <span className="ml-2 text-gray-700 line-through">{field.old_value}</span>
+                                    <span className="mx-2 text-purple-600">→</span>
+                                    <span className="text-gray-900 font-medium">{field.new_value}</span>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
                           </div>
                         </div>
-                      </div>
+                      )}
+                      
+                      {/* 아이템 상세 정보 */}
+                      {alert.item && (
+                        <div className="mt-4 bg-white rounded-lg p-4 border">
+                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                            <div>
+                              <span className="font-medium text-gray-500">업체:</span>
+                              <p className="text-gray-900">{alert.item.company}</p>
+                            </div>
+                            <div>
+                              <span className="font-medium text-gray-500">차종:</span>
+                              <p className="text-gray-900">{alert.item.chajong}</p>
+                            </div>
+                            <div>
+                              <span className="font-medium text-gray-500">품번:</span>
+                              <p className="text-gray-900">{alert.item.pumbeon}</p>
+                            </div>
+                            <div>
+                              <span className="font-medium text-gray-500">현재 재고:</span>
+                              <p className="text-gray-900">{alert.item.stock_qty}</p>
+                            </div>
+                            <div>
+                              <span className="font-medium text-gray-500">발주량:</span>
+                              <p className="text-gray-900">{alert.item.order_qty}</p>
+                            </div>
+                            <div>
+                              <span className="font-medium text-gray-500">입고량:</span>
+                              <p className="text-gray-900">{alert.item.in_qty}</p>
+                            </div>
+                            <div>
+                              <span className="font-medium text-gray-500">반출량:</span>
+                              <p className="text-gray-900">{alert.item.out_qty}</p>
+                            </div>
+                            <div>
+                              <span className="font-medium text-gray-500">미입고/과입고:</span>
+                              <p className={`font-medium ${
+                                alert.item.in_shortage.startsWith('+') ? 'text-green-600' :
+                                alert.item.in_shortage.startsWith('-') ? 'text-red-600' :
+                                'text-gray-600'
+                              }`}>
+                                {alert.item.in_shortage}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                   

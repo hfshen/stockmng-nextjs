@@ -16,6 +16,9 @@ interface DashboardStats {
     company: string
     totalStock: number
     itemCount: number
+    totalIncoming: number
+    totalOutgoing: number
+    totalOrderQty: number
   }>
   monthlyTrend: Array<{
     month: string
@@ -26,6 +29,18 @@ interface DashboardStats {
   categoryStats: Array<{
     category: string
     value: number
+  }>
+  companyDetails: Array<{
+    company: string
+    items: Array<{
+      chajong: string
+      pumbeon: string
+      pm: string
+      order_qty: number
+      in_qty: number
+      out_qty: number
+      stock_qty: number
+    }>
   }>
 }
 
@@ -74,7 +89,22 @@ export default function Dashboard() {
       let monthlyIncoming = 0
       let monthlyOutgoing = 0
 
-      const companyMap = new Map<string, { totalStock: number; itemCount: number }>()
+      const companyMap = new Map<string, { 
+        totalStock: number
+        itemCount: number
+        totalIncoming: number
+        totalOutgoing: number
+        totalOrderQty: number
+        items: Array<{
+          chajong: string
+          pumbeon: string
+          pm: string
+          order_qty: number
+          in_qty: number
+          out_qty: number
+          stock_qty: number
+        }>
+      }>()
       const monthlyTrendMap = new Map<string, { incoming: number; outgoing: number; stock: number }>()
 
       orderData?.forEach(order => {
@@ -82,6 +112,7 @@ export default function Dashboard() {
         const stock = monthly?.stock_qty ?? (order.in_qty - order.out_qty)
         const incoming = monthly?.in_qty ?? order.in_qty
         const outgoing = monthly?.out_qty ?? order.out_qty
+        const orderQty = monthly?.order_qty ?? order.order_qty
 
         totalStock += stock
         monthlyIncoming += incoming
@@ -91,10 +122,29 @@ export default function Dashboard() {
         else if (stock <= 10) lowStockItems++
 
         // 업체별 통계
-        const company = companyMap.get(order.company) || { totalStock: 0, itemCount: 0 }
+        const company = companyMap.get(order.company) || { 
+          totalStock: 0, 
+          itemCount: 0,
+          totalIncoming: 0,
+          totalOutgoing: 0,
+          totalOrderQty: 0,
+          items: []
+        }
         companyMap.set(order.company, {
           totalStock: company.totalStock + stock,
-          itemCount: company.itemCount + 1
+          itemCount: company.itemCount + 1,
+          totalIncoming: company.totalIncoming + incoming,
+          totalOutgoing: company.totalOutgoing + outgoing,
+          totalOrderQty: company.totalOrderQty + orderQty,
+          items: [...company.items, {
+            chajong: order.chajong,
+            pumbeon: order.pumbeon,
+            pm: order.pm,
+            order_qty: orderQty,
+            in_qty: incoming,
+            out_qty: outgoing,
+            stock_qty: stock
+          }]
         })
       })
 
@@ -110,7 +160,16 @@ export default function Dashboard() {
 
       const companyStats = Array.from(companyMap.entries()).map(([company, data]) => ({
         company,
-        ...data
+        totalStock: data.totalStock,
+        itemCount: data.itemCount,
+        totalIncoming: data.totalIncoming,
+        totalOutgoing: data.totalOutgoing,
+        totalOrderQty: data.totalOrderQty
+      }))
+
+      const companyDetails = Array.from(companyMap.entries()).map(([company, data]) => ({
+        company,
+        items: data.items
       }))
 
       const monthlyTrend = Array.from(monthlyTrendMap.entries())
@@ -139,7 +198,8 @@ export default function Dashboard() {
         monthlyOutgoing,
         companyStats,
         monthlyTrend,
-        categoryStats
+        categoryStats,
+        companyDetails
       })
     } catch (error) {
       console.error('대시보드 데이터 로드 오류:', error)
@@ -277,6 +337,69 @@ export default function Dashboard() {
                 <Bar dataKey="totalStock" fill="#8884d8" name="총 재고량" />
               </BarChart>
             </ResponsiveContainer>
+          </div>
+        </div>
+
+        {/* 업체별 상세 현황 */}
+        <div className="mb-8">
+          <div className="bg-white rounded-lg shadow p-6">
+            <h3 className="text-lg font-semibold text-gray-900 mb-4">업체별 상세 현황</h3>
+            <div className="space-y-6">
+              {stats.companyDetails.map((companyDetail) => {
+                const companyStat = stats.companyStats.find(c => c.company === companyDetail.company)
+                return (
+                  <div key={companyDetail.company} className="border rounded-lg p-4">
+                    <h4 className="text-md font-semibold text-gray-900 mb-3">{companyDetail.company}</h4>
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+                      <div className="bg-blue-50 p-3 rounded">
+                        <p className="text-xs text-gray-600">월발주수량</p>
+                        <p className="text-lg font-bold text-blue-900">{companyStat?.totalOrderQty.toLocaleString() || 0}</p>
+                      </div>
+                      <div className="bg-green-50 p-3 rounded">
+                        <p className="text-xs text-gray-600">입고</p>
+                        <p className="text-lg font-bold text-green-900">{companyStat?.totalIncoming.toLocaleString() || 0}</p>
+                      </div>
+                      <div className="bg-red-50 p-3 rounded">
+                        <p className="text-xs text-gray-600">반출</p>
+                        <p className="text-lg font-bold text-red-900">{companyStat?.totalOutgoing.toLocaleString() || 0}</p>
+                      </div>
+                      <div className="bg-purple-50 p-3 rounded">
+                        <p className="text-xs text-gray-600">재고현황</p>
+                        <p className="text-lg font-bold text-purple-900">{companyStat?.totalStock.toLocaleString() || 0}</p>
+                      </div>
+                    </div>
+                    <div className="overflow-x-auto">
+                      <table className="min-w-full divide-y divide-gray-200 text-sm">
+                        <thead className="bg-gray-50">
+                          <tr>
+                            <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">차종</th>
+                            <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">품번</th>
+                            <th className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">품명</th>
+                            <th className="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase">월발주</th>
+                            <th className="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase">입고</th>
+                            <th className="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase">반출</th>
+                            <th className="px-3 py-2 text-right text-xs font-medium text-gray-500 uppercase">재고</th>
+                          </tr>
+                        </thead>
+                        <tbody className="bg-white divide-y divide-gray-200">
+                          {companyDetail.items.map((item, index) => (
+                            <tr key={index} className="hover:bg-gray-50">
+                              <td className="px-3 py-2 text-gray-900">{item.chajong}</td>
+                              <td className="px-3 py-2 text-gray-900">{item.pumbeon}</td>
+                              <td className="px-3 py-2 text-gray-900">{item.pm}</td>
+                              <td className="px-3 py-2 text-right text-gray-900">{item.order_qty.toLocaleString()}</td>
+                              <td className="px-3 py-2 text-right text-gray-900">{item.in_qty.toLocaleString()}</td>
+                              <td className="px-3 py-2 text-right text-gray-900">{item.out_qty.toLocaleString()}</td>
+                              <td className="px-3 py-2 text-right text-gray-900">{item.stock_qty.toLocaleString()}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
           </div>
         </div>
 

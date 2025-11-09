@@ -11,7 +11,8 @@ import {
   Upload,
   Warehouse,
   Menu,
-  X
+  X,
+  Settings
 } from 'lucide-react'
 
 const navigation = [
@@ -20,6 +21,7 @@ const navigation = [
   { name: '알림 센터', href: '/alerts', icon: Bell },
   { name: '입고등록', href: '/add', icon: Plus },
   { name: '데이터 가져오기', href: '/import', icon: Upload },
+  { name: '관리자', href: '/admin', icon: Settings },
 ]
 
 export default function Navigation() {
