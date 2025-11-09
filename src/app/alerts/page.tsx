@@ -81,10 +81,6 @@ export default function Alerts() {
               remark: order.remark
             }
 
-            const changedFieldsText = history.changed_fields
-              .map(f => `${f.field}: ${f.old_value} → ${f.new_value}`)
-              .join(', ')
-
             newAlerts.push({
               id: `edit_history_${history.id}`,
               type: 'edit_history',
