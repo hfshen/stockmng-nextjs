@@ -333,8 +333,14 @@ function InboundModal({
                 </label>
                 <input
                   type="number"
-                  value={formData.in_qty}
+                  value={formData.in_qty === 0 ? '' : formData.in_qty}
                   onChange={(e) => setFormData(prev => ({ ...prev, in_qty: parseInt(e.target.value) || 0 }))}
+                  onFocus={(e) => {
+                    if (e.target.value === '0' || e.target.value === '') {
+                      e.target.select()
+                    }
+                  }}
+                  placeholder="입고수량을 입력하세요"
                   min="0"
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
@@ -346,8 +352,14 @@ function InboundModal({
                 </label>
                 <input
                   type="number"
-                  value={formData.order_qty}
+                  value={formData.order_qty === 0 ? '' : formData.order_qty}
                   onChange={(e) => setFormData(prev => ({ ...prev, order_qty: parseInt(e.target.value) || 0 }))}
+                  onFocus={(e) => {
+                    if (e.target.value === '0' || e.target.value === '') {
+                      e.target.select()
+                    }
+                  }}
+                  placeholder="발주수량을 입력하세요"
                   min="0"
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
@@ -675,6 +687,8 @@ export default function Home() {
   const [selectedItem, setSelectedItem] = useState<InventoryItem | undefined>()
   const [itemsPerPage, setItemsPerPage] = useState(1000)
   const [currentPage, setCurrentPage] = useState(1)
+  const [editingCell, setEditingCell] = useState<{itemId: number, field: 'in_qty' | 'stock_qty' | 'order_qty'} | null>(null)
+  const [editValue, setEditValue] = useState('')
 
   // 현재 월 문자열 생성
   const getCurrentMonth = () => {
@@ -849,6 +863,94 @@ export default function Home() {
     if (shortage.startsWith('+')) return 'text-green-600'
     if (shortage.startsWith('-')) return 'text-red-600'
     return 'text-gray-600'
+  }
+
+  // 인라인 편집 핸들러
+  const handleCellDoubleClick = (item: InventoryItem, field: 'in_qty' | 'stock_qty' | 'order_qty') => {
+    setEditingCell({ itemId: item.id, field })
+    setEditValue(item[field].toString())
+  }
+
+  const handleCellSave = async (item: InventoryItem) => {
+    if (!editingCell) return
+
+    let newValue: number
+    const trimmedValue = editValue.trim()
+    
+    // + 또는 - 기호가 있으면 누적 계산
+    if (trimmedValue.startsWith('+')) {
+      const diff = parseFloat(trimmedValue.slice(1)) || 0
+      newValue = item[editingCell.field] + diff
+    } else if (trimmedValue.startsWith('-')) {
+      const diff = parseFloat(trimmedValue.slice(1)) || 0
+      newValue = item[editingCell.field] - diff
+    } else {
+      newValue = parseFloat(trimmedValue) || 0
+    }
+
+    const oldValue = item[editingCell.field]
+    const diff = newValue - oldValue
+
+    try {
+      // 월별 데이터 업데이트
+      const currentMonth = new Date().toISOString().slice(0, 7)
+      const { data: monthlyData } = await supabase
+        .from('monthly_data')
+        .select('*')
+        .eq('year_month', currentMonth)
+        .eq('order_id', item.id)
+        .single()
+
+      let updatedInQty = item.in_qty
+      let updatedStockQty = item.stock_qty
+      let updatedOrderQty = item.order_qty
+
+      if (editingCell.field === 'in_qty') {
+        updatedInQty = newValue
+        updatedStockQty = item.stock_qty + diff // 재고도 자동 조정
+      } else if (editingCell.field === 'stock_qty') {
+        updatedStockQty = newValue
+      } else if (editingCell.field === 'order_qty') {
+        updatedOrderQty = newValue
+      }
+
+      // monthly_data 업데이트
+      await supabase
+        .from('monthly_data')
+        .upsert({
+          year_month: currentMonth,
+          order_id: item.id,
+          in_qty: updatedInQty,
+          out_qty: item.out_qty,
+          stock_qty: updatedStockQty,
+          order_qty: updatedOrderQty
+        })
+
+      // 수정 이력 저장
+      const userName = localStorage.getItem('userName') || '사용자'
+      await supabase
+        .from('edit_history')
+        .insert({
+          order_id: item.id,
+          user_name: userName,
+          changed_fields: [{
+            field: editingCell.field === 'in_qty' ? '입고' : editingCell.field === 'stock_qty' ? '재고' : '월발주수량',
+            old_value: oldValue,
+            new_value: newValue
+          }]
+        })
+
+      setEditingCell(null)
+      loadData() // 데이터 다시 로드
+    } catch (error) {
+      console.error('셀 저장 오류:', error)
+      alert('저장 중 오류가 발생했습니다.')
+    }
+  }
+
+  const handleCellCancel = () => {
+    setEditingCell(null)
+    setEditValue('')
   }
 
   // 페이지네이션
@@ -1122,11 +1224,7 @@ export default function Home() {
                     paginatedData.map((item) => (
                       <tr 
                         key={item.id} 
-                        className="hover:bg-gray-50 cursor-pointer"
-                        onDoubleClick={() => {
-                          setSelectedItem(item)
-                          setShowInboundModal(true)
-                        }}
+                        className="hover:bg-gray-50"
                       >
                         <td className="px-2 sm:px-4 py-3 sm:py-4 text-xs sm:text-sm text-gray-900 break-words">{item.company}</td>
                         <td className="px-2 sm:px-4 py-3 sm:py-4 text-xs sm:text-sm text-gray-900 break-words" title={item.chajong}>
@@ -1138,12 +1236,93 @@ export default function Home() {
                         <td className="px-2 sm:px-4 py-3 sm:py-4 text-xs sm:text-sm text-gray-900 break-words" title={item.pm}>
                           <div className="max-w-[200px] sm:max-w-[250px] truncate">{item.pm}</div>
                         </td>
-                        <td className="px-2 sm:px-4 py-3 sm:py-4 text-xs sm:text-sm text-gray-900 text-right">{item.in_qty.toLocaleString()}</td>
-                        <td className="px-2 sm:px-4 py-3 sm:py-4 text-xs sm:text-sm text-gray-900 text-right">{item.stock_qty.toLocaleString()}</td>
+                        <td 
+                          className="px-2 sm:px-4 py-3 sm:py-4 text-xs sm:text-sm text-gray-900 text-right cursor-pointer hover:bg-blue-50"
+                          onDoubleClick={() => handleCellDoubleClick(item, 'in_qty')}
+                        >
+                          {editingCell?.itemId === item.id && editingCell.field === 'in_qty' ? (
+                            <div className="flex items-center justify-end gap-2">
+                              <input
+                                type="text"
+                                value={editValue}
+                                onChange={(e) => setEditValue(e.target.value)}
+                                onBlur={() => handleCellSave(item)}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') {
+                                    handleCellSave(item)
+                                  } else if (e.key === 'Escape') {
+                                    handleCellCancel()
+                                  }
+                                }}
+                                placeholder="숫자 또는 +10, -5"
+                                autoFocus
+                                className="w-24 px-2 py-1 border border-blue-500 rounded text-right text-sm"
+                                onClick={(e) => e.stopPropagation()}
+                              />
+                            </div>
+                          ) : (
+                            item.in_qty.toLocaleString()
+                          )}
+                        </td>
+                        <td 
+                          className="px-2 sm:px-4 py-3 sm:py-4 text-xs sm:text-sm text-gray-900 text-right cursor-pointer hover:bg-blue-50"
+                          onDoubleClick={() => handleCellDoubleClick(item, 'stock_qty')}
+                        >
+                          {editingCell?.itemId === item.id && editingCell.field === 'stock_qty' ? (
+                            <div className="flex items-center justify-end gap-2">
+                              <input
+                                type="text"
+                                value={editValue}
+                                onChange={(e) => setEditValue(e.target.value)}
+                                onBlur={() => handleCellSave(item)}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') {
+                                    handleCellSave(item)
+                                  } else if (e.key === 'Escape') {
+                                    handleCellCancel()
+                                  }
+                                }}
+                                placeholder="숫자 또는 +10, -5"
+                                autoFocus
+                                className="w-24 px-2 py-1 border border-blue-500 rounded text-right text-sm"
+                                onClick={(e) => e.stopPropagation()}
+                              />
+                            </div>
+                          ) : (
+                            item.stock_qty.toLocaleString()
+                          )}
+                        </td>
                         <td className={`px-2 sm:px-4 py-3 sm:py-4 text-xs sm:text-sm text-right font-medium ${getShortageColor(item.in_shortage)}`}>
                           {item.in_shortage}
                         </td>
-                        <td className="px-2 sm:px-4 py-3 sm:py-4 text-xs sm:text-sm text-gray-900 text-right">{item.order_qty.toLocaleString()}</td>
+                        <td 
+                          className="px-2 sm:px-4 py-3 sm:py-4 text-xs sm:text-sm text-gray-900 text-right cursor-pointer hover:bg-blue-50"
+                          onDoubleClick={() => handleCellDoubleClick(item, 'order_qty')}
+                        >
+                          {editingCell?.itemId === item.id && editingCell.field === 'order_qty' ? (
+                            <div className="flex items-center justify-end gap-2">
+                              <input
+                                type="text"
+                                value={editValue}
+                                onChange={(e) => setEditValue(e.target.value)}
+                                onBlur={() => handleCellSave(item)}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') {
+                                    handleCellSave(item)
+                                  } else if (e.key === 'Escape') {
+                                    handleCellCancel()
+                                  }
+                                }}
+                                placeholder="숫자 또는 +10, -5"
+                                autoFocus
+                                className="w-24 px-2 py-1 border border-blue-500 rounded text-right text-sm"
+                                onClick={(e) => e.stopPropagation()}
+                              />
+                            </div>
+                          ) : (
+                            item.order_qty.toLocaleString()
+                          )}
+                        </td>
                         <td className="px-2 sm:px-4 py-3 sm:py-4 text-xs sm:text-sm text-gray-900 text-right whitespace-nowrap">{item.out_qty.toLocaleString()}</td>
                         <td className="px-2 sm:px-4 py-3 sm:py-4 text-xs sm:text-sm text-gray-900 break-words">
                           {item.remark ? (

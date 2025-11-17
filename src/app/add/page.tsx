@@ -211,8 +211,14 @@ export default function AddItem() {
                   </label>
                   <input
                     type="number"
-                    value={formData.in_qty}
+                    value={formData.in_qty === 0 ? '' : formData.in_qty}
                     onChange={(e) => setFormData(prev => ({ ...prev, in_qty: parseInt(e.target.value) || 0 }))}
+                    onFocus={(e) => {
+                      if (e.target.value === '0' || e.target.value === '') {
+                        e.target.select()
+                      }
+                    }}
+                    placeholder="입고수량을 입력하세요"
                     min="0"
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />
@@ -224,8 +230,14 @@ export default function AddItem() {
                   </label>
                   <input
                     type="number"
-                    value={formData.order_qty}
+                    value={formData.order_qty === 0 ? '' : formData.order_qty}
                     onChange={(e) => setFormData(prev => ({ ...prev, order_qty: parseInt(e.target.value) || 0 }))}
+                    onFocus={(e) => {
+                      if (e.target.value === '0' || e.target.value === '') {
+                        e.target.select()
+                      }
+                    }}
+                    placeholder="발주수량을 입력하세요"
                     min="0"
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   />

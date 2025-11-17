@@ -121,6 +121,14 @@ export default function Import() {
 
               if (existingOrder) {
                 orderId = existingOrder.id
+                // 기존 레코드 업데이트 (기본 정보만 업데이트)
+                await supabase
+                  .from('order_register')
+                  .update({
+                    pm: String(row['품명'] || ''),
+                    remark: String(row['비고'] || '')
+                  })
+                  .eq('id', orderId)
               } else {
                 // 새 레코드 생성
                 const { data: newOrder, error: insertError } = await supabase
@@ -130,9 +138,9 @@ export default function Import() {
                     chajong: String(row['차종']),
                     pumbeon: String(row['품번']),
                     pm: String(row['품명'] || ''),
-                    in_qty: parseInt(String(row['입고수량'])) || 0,
-                    out_qty: parseInt(String(row['반출수량'])) || 0,
-                    order_qty: parseInt(String(row['발주수량'])) || 0,
+                    in_qty: 0,
+                    out_qty: 0,
+                    order_qty: 0,
                     remark: String(row['비고'] || '')
                   })
                   .select('id')
@@ -142,10 +150,17 @@ export default function Import() {
                 orderId = newOrder.id
               }
 
-              // 월별 데이터 업데이트
+              // 해당 월의 기존 monthly_data 삭제 (중복 방지)
+              await supabase
+                .from('monthly_data')
+                .delete()
+                .eq('year_month', currentMonth)
+                .eq('order_id', orderId)
+
+              // 월별 데이터 삽입 (새로 생성)
               const { error: monthlyError } = await supabase
                 .from('monthly_data')
-                .upsert({
+                .insert({
                   year_month: currentMonth,
                   order_id: orderId,
                   in_qty: parseInt(String(row['입고수량'])) || 0,
