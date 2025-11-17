@@ -309,6 +309,8 @@ export default function Admin() {
                                   type="text"
                                   value={row.company}
                                   onChange={(e) => setMasterData(prev => prev.map(r => r.id === row.id ? { ...r, company: e.target.value } : r))}
+                                  aria-label="업체명"
+                                  placeholder="업체명"
                                   className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
                                 />
                               </td>
@@ -317,6 +319,8 @@ export default function Admin() {
                                   type="text"
                                   value={row.chajong}
                                   onChange={(e) => setMasterData(prev => prev.map(r => r.id === row.id ? { ...r, chajong: e.target.value } : r))}
+                                  aria-label="차종"
+                                  placeholder="차종"
                                   className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
                                 />
                               </td>
@@ -325,6 +329,8 @@ export default function Admin() {
                                   type="text"
                                   value={row.pumbeon}
                                   onChange={(e) => setMasterData(prev => prev.map(r => r.id === row.id ? { ...r, pumbeon: e.target.value } : r))}
+                                  aria-label="품번"
+                                  placeholder="품번"
                                   className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
                                 />
                               </td>
@@ -333,6 +339,8 @@ export default function Admin() {
                                   type="text"
                                   value={row.pm}
                                   onChange={(e) => setMasterData(prev => prev.map(r => r.id === row.id ? { ...r, pm: e.target.value } : r))}
+                                  aria-label="품명"
+                                  placeholder="품명"
                                   className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
                                 />
                               </td>
@@ -368,6 +376,8 @@ export default function Admin() {
                                   <button
                                     onClick={() => setEditingRow(row.id)}
                                     disabled={loading}
+                                    aria-label="수정"
+                                    title="수정"
                                     className="text-blue-600 hover:text-blue-900 disabled:opacity-50"
                                   >
                                     <Edit className="h-4 w-4 inline" />
@@ -375,6 +385,8 @@ export default function Admin() {
                                   <button
                                     onClick={() => handleDelete(row)}
                                     disabled={loading}
+                                    aria-label="삭제"
+                                    title="삭제"
                                     className="text-red-600 hover:text-red-900 disabled:opacity-50"
                                   >
                                     <Trash2 className="h-4 w-4 inline" />
@@ -412,6 +424,8 @@ export default function Admin() {
                   <select
                     value={itemsPerPage}
                     onChange={(e) => setItemsPerPage(parseInt(e.target.value))}
+                    aria-label="재고현황 보기 항목 수량"
+                    title="재고현황 보기 항목 수량"
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value={15}>15개</option>
@@ -472,61 +486,7 @@ export default function Admin() {
                 <h3 className="text-lg font-medium text-gray-900 mb-2">회원가입 관리</h3>
                 <p className="text-gray-600">회원가입 관리 기능은 추후 구현 예정입니다.</p>
               </div>
-            ) : (
-              <div className="space-y-4">
-                <div className="flex space-x-2">
-                  <input
-                    type="text"
-                    value={newItem}
-                    onChange={(e) => setNewItem(e.target.value)}
-                    onKeyDown={(e) => e.key === 'Enter' && handleAdd()}
-                    placeholder={`새 ${getTabLabel()} 입력`}
-                    className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                  <button
-                    onClick={handleAdd}
-                    disabled={loading || !newItem.trim()}
-                    className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50"
-                  >
-                    <Plus className="h-4 w-4 mr-1" />
-                    추가
-                  </button>
-                </div>
-
-                <div className="border rounded-lg overflow-hidden">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
-                      <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          {getTabLabel()}
-                        </th>
-                        <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          작업
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
-                      {getCurrentItems().map((item, index) => (
-                        <tr key={index} className="hover:bg-gray-50">
-                          <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                            {item}
-                          </td>
-                          <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                            <button
-                              onClick={() => handleDelete(item)}
-                              disabled={loading}
-                              className="text-red-600 hover:text-red-900 disabled:opacity-50"
-                            >
-                              <Trash2 className="h-4 w-4 inline" />
-                            </button>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            )}
+            ) : null}
           </div>
         </div>
       </div>

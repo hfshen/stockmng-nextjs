@@ -329,6 +329,7 @@ export default function Alerts() {
                       checked={selectedAlerts.has(alert.id)}
                       onChange={() => toggleSelectAlert(alert.id)}
                       onClick={(e) => e.stopPropagation()}
+                      aria-label={`${alert.title} 선택`}
                       className="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
                     />
                     {getAlertIcon(alert.type)}
@@ -434,6 +435,8 @@ export default function Alerts() {
                     </span>
                     <button
                       onClick={() => dismissAlert(alert.id)}
+                      aria-label="알림 삭제"
+                      title="알림 삭제"
                       className="text-gray-400 hover:text-gray-600 transition-colors"
                     >
                       <XCircle className="h-5 w-5" />

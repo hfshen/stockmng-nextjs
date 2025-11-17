@@ -259,6 +259,8 @@ function InboundModal({
             </h2>
             <button
               onClick={onClose}
+              aria-label="닫기"
+              title="닫기"
               className="text-gray-400 hover:text-gray-600"
             >
               <X className="h-6 w-6" />
@@ -316,10 +318,11 @@ function InboundModal({
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="inbound-in-date" className="block text-sm font-medium text-gray-700 mb-1">
                   입고일자
                 </label>
                 <input
+                  id="inbound-in-date"
                   type="date"
                   value={formData.in_date}
                   onChange={(e) => setFormData(prev => ({ ...prev, in_date: e.target.value }))}
@@ -328,10 +331,11 @@ function InboundModal({
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="inbound-in-qty" className="block text-sm font-medium text-gray-700 mb-1">
                   입고수량
                 </label>
                 <input
+                  id="inbound-in-qty"
                   type="number"
                   value={formData.in_qty === 0 ? '' : formData.in_qty}
                   onChange={(e) => setFormData(prev => ({ ...prev, in_qty: parseInt(e.target.value) || 0 }))}
@@ -347,10 +351,11 @@ function InboundModal({
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="inbound-order-qty" className="block text-sm font-medium text-gray-700 mb-1">
                   발주수량
                 </label>
                 <input
+                  id="inbound-order-qty"
                   type="number"
                   value={formData.order_qty === 0 ? '' : formData.order_qty}
                   onChange={(e) => setFormData(prev => ({ ...prev, order_qty: parseInt(e.target.value) || 0 }))}
@@ -555,6 +560,8 @@ function EditModal({
             </h2>
             <button
               onClick={onClose}
+              aria-label="닫기"
+              title="닫기"
               className="text-gray-400 hover:text-gray-600"
             >
               <X className="h-6 w-6" />
@@ -571,10 +578,11 @@ function EditModal({
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="edit-in-qty" className="block text-sm font-medium text-gray-700 mb-1">
                   입고
                 </label>
                 <input
+                  id="edit-in-qty"
                   type="number"
                   value={formData.in_qty}
                   onChange={(e) => setFormData(prev => ({ ...prev, in_qty: parseInt(e.target.value) || 0 }))}
@@ -584,10 +592,11 @@ function EditModal({
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="edit-stock-qty" className="block text-sm font-medium text-gray-700 mb-1">
                   재고
                 </label>
                 <input
+                  id="edit-stock-qty"
                   type="number"
                   value={formData.stock_qty}
                   onChange={(e) => setFormData(prev => ({ ...prev, stock_qty: parseInt(e.target.value) || 0 }))}
@@ -597,10 +606,11 @@ function EditModal({
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="edit-order-qty" className="block text-sm font-medium text-gray-700 mb-1">
                   월발주수량
                 </label>
                 <input
+                  id="edit-order-qty"
                   type="number"
                   value={formData.order_qty}
                   onChange={(e) => setFormData(prev => ({ ...prev, order_qty: parseInt(e.target.value) || 0 }))}
@@ -610,10 +620,11 @@ function EditModal({
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="edit-out-qty" className="block text-sm font-medium text-gray-700 mb-1">
                   반출
                 </label>
                 <input
+                  id="edit-out-qty"
                   type="number"
                   value={formData.out_qty}
                   onChange={(e) => setFormData(prev => ({ ...prev, out_qty: parseInt(e.target.value) || 0 }))}
@@ -624,10 +635,11 @@ function EditModal({
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="edit-remark" className="block text-sm font-medium text-gray-700 mb-1">
                 비고
               </label>
               <textarea
+                id="edit-remark"
                 value={formData.remark}
                 onChange={(e) => setFormData(prev => ({ ...prev, remark: e.target.value }))}
                 rows={3}
@@ -995,10 +1007,12 @@ export default function Home() {
             <div className="space-y-4 mb-6">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">월별</label>
+                  <label htmlFor="filter-month" className="block text-sm font-medium text-gray-700 mb-1">월별</label>
                   <select
+                    id="filter-month"
                     value={filters.month}
                     onChange={(e) => setFilters(prev => ({ ...prev, month: e.target.value }))}
+                    aria-label="월별 필터"
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     {months.map(month => (
@@ -1047,10 +1061,12 @@ export default function Home() {
               {/* 정렬 옵션 */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between space-y-2 sm:space-y-0 sm:space-x-4">
                 <div className="flex items-center space-x-2">
-                  <label className="text-sm font-medium text-gray-700">정렬:</label>
+                  <label htmlFor="sort-by" className="text-sm font-medium text-gray-700">정렬:</label>
                   <select
+                    id="sort-by"
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value)}
+                    aria-label="정렬 기준"
                     className="px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                   >
                     <option value="company">업체명</option>
@@ -1070,13 +1086,15 @@ export default function Home() {
                   </button>
                 </div>
                 <div className="flex items-center space-x-2">
-                  <label className="text-sm font-medium text-gray-700">보기:</label>
+                  <label htmlFor="items-per-page" className="text-sm font-medium text-gray-700">보기:</label>
                   <select
+                    id="items-per-page"
                     value={itemsPerPage}
                     onChange={(e) => {
                       setItemsPerPage(parseInt(e.target.value))
                       setCurrentPage(1)
                     }}
+                    aria-label="페이지당 항목 수"
                     className="px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                   >
                     <option value={15}>15개</option>

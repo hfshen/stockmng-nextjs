@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import type { ChangeEvent } from 'react'
 import { Upload, FileSpreadsheet, CheckCircle, AlertCircle, Download } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import * as XLSX from 'xlsx'
@@ -17,7 +18,7 @@ export default function Import() {
   const [result, setResult] = useState<UploadResult | null>(null)
   const [preview, setPreview] = useState<string[][]>([])
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0]
     if (selectedFile) {
       setFile(selectedFile)
@@ -245,13 +246,15 @@ export default function Import() {
 
           {/* 파일 업로드 */}
           <div className="mb-6">
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label htmlFor="file-upload" className="block text-sm font-medium text-gray-700 mb-2">
               Excel 파일 선택
             </label>
             <input
+              id="file-upload"
               type="file"
               accept=".xlsx,.xls"
               onChange={handleFileChange}
+              aria-label="Excel 파일 선택"
               className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
             />
           </div>

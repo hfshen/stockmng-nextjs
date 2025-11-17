@@ -246,10 +246,13 @@ export default function Dashboard() {
             <div className="flex items-center space-x-4">
               <div className="flex items-center">
                 <Calendar className="h-4 w-4 mr-2 text-gray-500" />
+                <label htmlFor="dashboard-month" className="sr-only">월 선택</label>
                 <input
+                  id="dashboard-month"
                   type="month"
                   value={selectedMonth}
                   onChange={(e) => setSelectedMonth(e.target.value)}
+                  aria-label="월 선택"
                   className="px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>

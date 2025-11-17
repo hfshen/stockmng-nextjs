@@ -136,13 +136,15 @@ export default function AddItem() {
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label htmlFor="add-company" className="block text-sm font-medium text-gray-700 mb-1">
                     업체명 *
                   </label>
                   <select
+                    id="add-company"
                     value={formData.company}
                     onChange={(e) => setFormData(prev => ({ ...prev, company: e.target.value }))}
                     required
+                    aria-label="업체명 선택"
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="">업체를 선택하세요</option>
@@ -153,10 +155,11 @@ export default function AddItem() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label htmlFor="add-chajong" className="block text-sm font-medium text-gray-700 mb-1">
                     차종 *
                   </label>
                   <input
+                    id="add-chajong"
                     type="text"
                     value={formData.chajong}
                     onChange={(e) => setFormData(prev => ({ ...prev, chajong: e.target.value }))}
@@ -167,10 +170,11 @@ export default function AddItem() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label htmlFor="add-pumbeon" className="block text-sm font-medium text-gray-700 mb-1">
                     품번 *
                   </label>
                   <input
+                    id="add-pumbeon"
                     type="text"
                     value={formData.pumbeon}
                     onChange={(e) => setFormData(prev => ({ ...prev, pumbeon: e.target.value }))}
@@ -181,10 +185,11 @@ export default function AddItem() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label htmlFor="add-pm" className="block text-sm font-medium text-gray-700 mb-1">
                     품명
                   </label>
                   <input
+                    id="add-pm"
                     type="text"
                     value={formData.pm}
                     onChange={(e) => setFormData(prev => ({ ...prev, pm: e.target.value }))}
@@ -194,10 +199,11 @@ export default function AddItem() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                  <label htmlFor="add-in-date" className="block text-sm font-medium text-gray-700 mb-1">
                     입고일자
                   </label>
                   <input
+                    id="add-in-date"
                     type="date"
                     value={formData.in_date}
                     onChange={(e) => setFormData(prev => ({ ...prev, in_date: e.target.value }))}
