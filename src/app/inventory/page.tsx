@@ -1,12 +1,12 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { Search, Plus, Download, Edit, FileText, X } from 'lucide-react'
+import { Search, Plus, Download, Edit2, FileText, X, ArrowUpDown, Filter, Trash2 } from 'lucide-react'
 import { supabase, InventoryItem } from '@/lib/supabase'
 import { useToast } from '@/components/Toast'
 import { handleError } from '@/lib/utils'
 
-// Combobox 컴포넌트
+// Styled Combobox
 function Combobox({ 
   value, 
   onChange, 
@@ -80,19 +80,18 @@ function Combobox({
         onFocus={() => setShowDropdown(true)}
         onKeyDown={handleKeyDown}
         placeholder={placeholder}
-        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-        list={`datalist-${placeholder}`}
+        className="w-full px-3 py-2 bg-white border border-zinc-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:border-transparent transition-all placeholder:text-zinc-400"
       />
       {showDropdown && filteredOptions.length > 0 && (
         <div
           ref={dropdownRef}
-          className="absolute z-10 w-full mt-1 bg-white border border-gray-300 rounded-md shadow-lg max-h-60 overflow-auto"
+          className="absolute z-20 w-full mt-1 bg-white border border-zinc-100 rounded-lg shadow-xl max-h-60 overflow-auto"
         >
           {filteredOptions.map((option, index) => (
             <div
               key={index}
               onClick={() => handleSelect(option)}
-              className="px-3 py-2 hover:bg-gray-100 cursor-pointer"
+              className="px-3 py-2 text-sm text-zinc-700 hover:bg-zinc-50 cursor-pointer transition-colors"
             >
               {option}
             </div>
@@ -103,7 +102,7 @@ function Combobox({
   )
 }
 
-// 입고등록 모달 컴포넌트
+// Styled InboundModal
 function InboundModal({ 
   isOpen, 
   onClose, 
@@ -178,7 +177,6 @@ function InboundModal({
     setLoading(true)
 
     try {
-      // 1. order_register에서 기존 레코드 찾기 또는 생성
       const { data: existingOrder, error: findError } = await supabase
         .from('order_register')
         .select('id')
@@ -212,7 +210,6 @@ function InboundModal({
         orderId = newOrder.id
       }
 
-      // 2. 입고 이력 추가
       const { error: inRegisterError } = await supabase
         .from('in_register')
         .insert({
@@ -223,7 +220,6 @@ function InboundModal({
 
       if (inRegisterError) throw inRegisterError
 
-      // 3. 월별 데이터 업데이트
       const currentMonth = new Date().toISOString().slice(0, 7)
       const { error: monthlyError } = await supabase
         .from('monthly_data')
@@ -252,157 +248,102 @@ function InboundModal({
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto border border-gray-100">
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4 transition-all">
+      <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto border border-zinc-200">
         <div className="p-8">
           <div className="flex justify-between items-center mb-8">
-            <div className="flex items-center">
-              <div className="p-2 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 mr-3">
-                <Plus className="h-5 w-5 text-white" />
-              </div>
-              <h2 className="text-2xl font-bold text-gray-900">입고등록</h2>
-            </div>
+            <h2 className="text-2xl font-bold text-zinc-900 tracking-tight">입고 등록</h2>
             <button
               onClick={onClose}
-              aria-label="닫기"
-              title="닫기"
-              className="p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+              className="p-2 rounded-lg text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100 transition-colors"
             >
               <X className="h-5 w-5" />
             </button>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  업체명 *
-                </label>
-                <Combobox
-                  value={formData.company}
-                  onChange={(value) => setFormData(prev => ({ ...prev, company: value }))}
-                  options={companies}
-                  placeholder="업체명"
-                />
-              </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {[
+                { label: '업체명', value: formData.company, key: 'company', options: companies, req: true },
+                { label: '차종', value: formData.chajong, key: 'chajong', options: chajongs, req: true },
+                { label: '품번', value: formData.pumbeon, key: 'pumbeon', options: pumbeons, req: true },
+                { label: '품명', value: formData.pm, key: 'pm', options: pms, req: false },
+              ].map((field) => (
+                <div key={field.key}>
+                  <label className="block text-sm font-medium text-zinc-700 mb-1.5">
+                    {field.label} {field.req && <span className="text-red-500">*</span>}
+                  </label>
+                  <Combobox
+                    value={field.value}
+                    onChange={(value) => setFormData(prev => ({ ...prev, [field.key]: value }))}
+                    options={field.options}
+                    placeholder={`${field.label} 입력`}
+                  />
+                </div>
+              ))}
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  차종 *
-                </label>
-                <Combobox
-                  value={formData.chajong}
-                  onChange={(value) => setFormData(prev => ({ ...prev, chajong: value }))}
-                  options={chajongs}
-                  placeholder="차종"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  품번 *
-                </label>
-                <Combobox
-                  value={formData.pumbeon}
-                  onChange={(value) => setFormData(prev => ({ ...prev, pumbeon: value }))}
-                  options={pumbeons}
-                  placeholder="품번"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  품명
-                </label>
-                <Combobox
-                  value={formData.pm}
-                  onChange={(value) => setFormData(prev => ({ ...prev, pm: value }))}
-                  options={pms}
-                  placeholder="품명"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="inbound-in-date" className="block text-sm font-medium text-gray-700 mb-1">
-                  입고일자
-                </label>
+                <label className="block text-sm font-medium text-zinc-700 mb-1.5">입고일자</label>
                 <input
-                  id="inbound-in-date"
                   type="date"
                   value={formData.in_date}
                   onChange={(e) => setFormData(prev => ({ ...prev, in_date: e.target.value }))}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 bg-white border border-zinc-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:border-transparent"
                 />
               </div>
 
               <div>
-                <label htmlFor="inbound-in-qty" className="block text-sm font-medium text-gray-700 mb-1">
-                  입고수량
-                </label>
+                <label className="block text-sm font-medium text-zinc-700 mb-1.5">입고수량</label>
                 <input
-                  id="inbound-in-qty"
                   type="number"
                   value={formData.in_qty === 0 ? '' : formData.in_qty}
                   onChange={(e) => setFormData(prev => ({ ...prev, in_qty: parseInt(e.target.value) || 0 }))}
-                  onFocus={(e) => {
-                    if (e.target.value === '0' || e.target.value === '') {
-                      e.target.select()
-                    }
-                  }}
-                  placeholder="입고수량을 입력하세요"
+                  onFocus={(e) => e.target.value === '0' && e.target.select()}
                   min="0"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 bg-white border border-zinc-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:border-transparent"
+                  placeholder="0"
                 />
               </div>
 
               <div>
-                <label htmlFor="inbound-order-qty" className="block text-sm font-medium text-gray-700 mb-1">
-                  발주수량
-                </label>
+                <label className="block text-sm font-medium text-zinc-700 mb-1.5">발주수량</label>
                 <input
-                  id="inbound-order-qty"
                   type="number"
                   value={formData.order_qty === 0 ? '' : formData.order_qty}
                   onChange={(e) => setFormData(prev => ({ ...prev, order_qty: parseInt(e.target.value) || 0 }))}
-                  onFocus={(e) => {
-                    if (e.target.value === '0' || e.target.value === '') {
-                      e.target.select()
-                    }
-                  }}
-                  placeholder="발주수량을 입력하세요"
+                  onFocus={(e) => e.target.value === '0' && e.target.select()}
                   min="0"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full px-3 py-2 bg-white border border-zinc-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:border-transparent"
+                  placeholder="0"
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                비고
-              </label>
+              <label className="block text-sm font-medium text-zinc-700 mb-1.5">비고</label>
               <textarea
                 value={formData.remark}
                 onChange={(e) => setFormData(prev => ({ ...prev, remark: e.target.value }))}
                 rows={3}
-                placeholder="비고를 입력하세요"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 bg-white border border-zinc-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:border-transparent resize-none"
+                placeholder="특이사항 입력"
               />
             </div>
 
-            <div className="flex justify-end space-x-3 mt-8">
+            <div className="flex justify-end gap-3 pt-4 border-t border-zinc-100">
               <button
                 type="button"
                 onClick={onClose}
-                className="px-5 py-2.5 bg-white text-gray-700 rounded-lg border border-gray-200 hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm hover:shadow-md font-medium"
+                className="px-4 py-2 bg-white text-zinc-700 rounded-lg border border-zinc-200 hover:bg-zinc-50 font-medium text-sm transition-all"
               >
                 취소
               </button>
               <button
                 type="submit"
                 disabled={loading}
-                className="px-5 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed font-medium"
+                className="px-4 py-2 bg-zinc-900 text-white rounded-lg hover:bg-zinc-800 disabled:opacity-50 font-medium text-sm transition-all shadow-sm"
               >
-                {loading ? '저장 중...' : '저장'}
+                {loading ? '처리 중...' : '저장하기'}
               </button>
             </div>
           </form>
@@ -412,7 +353,7 @@ function InboundModal({
   )
 }
 
-// 수정 모달 컴포넌트
+// Styled EditModal
 function EditModal({ 
   isOpen, 
   onClose, 
@@ -449,30 +390,17 @@ function EditModal({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!item) return
-
     setLoading(true)
 
     try {
-      // 변경된 필드 추적
       const changedFields: { field: string; old_value: string | number; new_value: string | number }[] = []
       
-      if (item.in_qty !== formData.in_qty) {
-        changedFields.push({ field: '입고', old_value: item.in_qty, new_value: formData.in_qty })
-      }
-      if (item.stock_qty !== formData.stock_qty) {
-        changedFields.push({ field: '재고', old_value: item.stock_qty, new_value: formData.stock_qty })
-      }
-      if (item.order_qty !== formData.order_qty) {
-        changedFields.push({ field: '월발주수량', old_value: item.order_qty, new_value: formData.order_qty })
-      }
-      if (item.out_qty !== formData.out_qty) {
-        changedFields.push({ field: '반출', old_value: item.out_qty, new_value: formData.out_qty })
-      }
-      if (item.remark !== formData.remark) {
-        changedFields.push({ field: '비고', old_value: item.remark || '', new_value: formData.remark })
-      }
+      if (item.in_qty !== formData.in_qty) changedFields.push({ field: '입고', old_value: item.in_qty, new_value: formData.in_qty })
+      if (item.stock_qty !== formData.stock_qty) changedFields.push({ field: '재고', old_value: item.stock_qty, new_value: formData.stock_qty })
+      if (item.order_qty !== formData.order_qty) changedFields.push({ field: '월발주수량', old_value: item.order_qty, new_value: formData.order_qty })
+      if (item.out_qty !== formData.out_qty) changedFields.push({ field: '반출', old_value: item.out_qty, new_value: formData.out_qty })
+      if (item.remark !== formData.remark) changedFields.push({ field: '비고', old_value: item.remark || '', new_value: formData.remark })
 
-      // order_register 업데이트
       const { error: updateError } = await supabase
         .from('order_register')
         .update({
@@ -485,7 +413,6 @@ function EditModal({
 
       if (updateError) throw updateError
 
-      // 월별 데이터 업데이트
       const currentMonth = new Date().toISOString().slice(0, 7)
       const { error: monthlyError } = await supabase
         .from('monthly_data')
@@ -500,7 +427,6 @@ function EditModal({
 
       if (monthlyError) throw monthlyError
 
-      // 수정 이력 저장 (변경된 필드가 있는 경우만)
       if (changedFields.length > 0) {
         const userName = localStorage.getItem('userName') || '사용자'
         const { error: historyError } = await supabase
@@ -510,11 +436,8 @@ function EditModal({
             user_name: userName,
             changed_fields: changedFields
           })
-
-        if (historyError) {
-          handleError(historyError, '수정 이력 저장')
-          // 이력 저장 실패해도 수정은 계속 진행
-        }
+          
+        if (historyError) console.error(historyError)
       }
 
       showToast('수정이 완료되었습니다.', 'success')
@@ -556,128 +479,81 @@ function EditModal({
   if (!isOpen || !item) return null
 
   return (
-    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full border border-gray-100">
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full border border-zinc-200">
         <div className="p-8">
-          <div className="flex justify-between items-center mb-8">
-            <div className="flex items-center">
-              <div className="p-2 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 mr-3">
-                <Edit className="h-5 w-5 text-white" />
-              </div>
-              <h2 className="text-2xl font-bold text-gray-900">수정</h2>
-            </div>
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-xl font-bold text-zinc-900">항목 수정</h2>
             <button
               onClick={onClose}
-              aria-label="닫기"
-              title="닫기"
-              className="p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+              className="p-2 rounded-lg text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100"
             >
               <X className="h-5 w-5" />
             </button>
           </div>
 
-          <div className="mb-4 p-4 bg-gray-50 rounded-lg">
-            <p className="text-sm text-gray-600">업체명: <span className="font-medium">{item.company}</span></p>
-            <p className="text-sm text-gray-600">차종: <span className="font-medium">{item.chajong}</span></p>
-            <p className="text-sm text-gray-600">품번: <span className="font-medium">{item.pumbeon}</span></p>
-            <p className="text-sm text-gray-600">품명: <span className="font-medium">{item.pm}</span></p>
+          <div className="mb-6 p-4 bg-zinc-50 rounded-lg border border-zinc-100 text-sm">
+            <div className="grid grid-cols-2 gap-2">
+              <p className="text-zinc-500">업체명: <span className="text-zinc-900 font-medium">{item.company}</span></p>
+              <p className="text-zinc-500">차종: <span className="text-zinc-900 font-medium">{item.chajong}</span></p>
+              <p className="text-zinc-500">품번: <span className="text-zinc-900 font-medium">{item.pumbeon}</span></p>
+              <p className="text-zinc-500">품명: <span className="text-zinc-900 font-medium">{item.pm}</span></p>
+            </div>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="edit-in-qty" className="block text-sm font-medium text-gray-700 mb-1">
-                  입고
-                </label>
-                <input
-                  id="edit-in-qty"
-                  type="number"
-                  value={formData.in_qty}
-                  onChange={(e) => setFormData(prev => ({ ...prev, in_qty: parseInt(e.target.value) || 0 }))}
-                  min="0"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="edit-stock-qty" className="block text-sm font-medium text-gray-700 mb-1">
-                  재고
-                </label>
-                <input
-                  id="edit-stock-qty"
-                  type="number"
-                  value={formData.stock_qty}
-                  onChange={(e) => setFormData(prev => ({ ...prev, stock_qty: parseInt(e.target.value) || 0 }))}
-                  min="0"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="edit-order-qty" className="block text-sm font-medium text-gray-700 mb-1">
-                  월발주수량
-                </label>
-                <input
-                  id="edit-order-qty"
-                  type="number"
-                  value={formData.order_qty}
-                  onChange={(e) => setFormData(prev => ({ ...prev, order_qty: parseInt(e.target.value) || 0 }))}
-                  min="0"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="edit-out-qty" className="block text-sm font-medium text-gray-700 mb-1">
-                  반출
-                </label>
-                <input
-                  id="edit-out-qty"
-                  type="number"
-                  value={formData.out_qty}
-                  onChange={(e) => setFormData(prev => ({ ...prev, out_qty: parseInt(e.target.value) || 0 }))}
-                  min="0"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
+              {['in_qty', 'stock_qty', 'order_qty', 'out_qty'].map((field) => (
+                <div key={field}>
+                  <label className="block text-sm font-medium text-zinc-700 mb-1.5">
+                    {field === 'in_qty' ? '입고' : field === 'stock_qty' ? '재고' : field === 'order_qty' ? '발주' : '반출'}
+                  </label>
+                  <input
+                    type="number"
+                    value={formData[field as keyof typeof formData] as number}
+                    onChange={(e) => setFormData(prev => ({ ...prev, [field]: parseInt(e.target.value) || 0 }))}
+                    className="w-full px-3 py-2 bg-white border border-zinc-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:border-transparent"
+                  />
+                </div>
+              ))}
             </div>
 
             <div>
-              <label htmlFor="edit-remark" className="block text-sm font-medium text-gray-700 mb-1">
-                비고
-              </label>
+              <label className="block text-sm font-medium text-zinc-700 mb-1.5">비고</label>
               <textarea
-                id="edit-remark"
                 value={formData.remark}
                 onChange={(e) => setFormData(prev => ({ ...prev, remark: e.target.value }))}
-                rows={3}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                rows={2}
+                className="w-full px-3 py-2 bg-white border border-zinc-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:border-transparent"
               />
             </div>
 
-            <div className="flex justify-end space-x-4">
+            <div className="flex justify-between pt-4 border-t border-zinc-100 mt-6">
               <button
                 type="button"
                 onClick={handleDelete}
                 disabled={loading}
-                className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors disabled:opacity-50"
+                className="flex items-center gap-2 px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg text-sm font-medium transition-colors"
               >
-                삭제
+                <Trash2 className="w-4 h-4" />
+                삭제하기
               </button>
-              <button
-                type="button"
-                onClick={onClose}
-                className="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors"
-              >
-                취소
-              </button>
-              <button
-                type="submit"
-                disabled={loading}
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50"
-              >
-                {loading ? '저장 중...' : '저장'}
-              </button>
+              <div className="flex gap-3">
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="px-4 py-2 bg-white text-zinc-700 rounded-lg border border-zinc-200 hover:bg-zinc-50 font-medium text-sm transition-all"
+                >
+                  취소
+                </button>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="px-4 py-2 bg-zinc-900 text-white rounded-lg hover:bg-zinc-800 disabled:opacity-50 font-medium text-sm transition-all shadow-sm"
+                >
+                  저장 완료
+                </button>
+              </div>
             </div>
           </form>
         </div>
@@ -686,6 +562,7 @@ function EditModal({
   )
 }
 
+// Main Page
 export default function Home() {
   const { showToast } = useToast()
   const [data, setData] = useState<InventoryItem[]>([])
@@ -711,33 +588,19 @@ export default function Home() {
   const [editingCell, setEditingCell] = useState<{itemId: number, field: 'in_qty' | 'stock_qty' | 'order_qty'} | null>(null)
   const [editValue, setEditValue] = useState('')
 
-  // 현재 월 문자열 생성
-  const getCurrentMonth = () => {
-    return new Date().toISOString().slice(0, 7)
-  }
+  const getCurrentMonth = () => new Date().toISOString().slice(0, 7)
 
-  // 데이터 로드
   const loadData = useCallback(async () => {
     try {
       setLoading(true)
-      
-      const { data: orderData, error: orderError } = await supabase
-        .from('order_register')
-        .select('*')
-        .order('company')
-
+      const { data: orderData, error: orderError } = await supabase.from('order_register').select('*').order('company')
       if (orderError) throw orderError
 
-      const { data: monthlyData, error: monthlyError } = await supabase
-        .from('monthly_data')
-        .select('*')
-        .eq('year_month', filters.month)
-
+      const { data: monthlyData, error: monthlyError } = await supabase.from('monthly_data').select('*').eq('year_month', filters.month)
       if (monthlyError) throw monthlyError
 
       const inventoryData: InventoryItem[] = orderData?.map(order => {
         const monthly = monthlyData?.find(m => m.order_id === order.id)
-        
         const in_qty = monthly?.in_qty ?? order.in_qty
         const stock_qty = monthly?.stock_qty ?? (order.in_qty - order.out_qty)
         const order_qty = monthly?.order_qty ?? order.order_qty
@@ -745,11 +608,8 @@ export default function Home() {
         
         const in_shortage = order_qty - in_qty + out_qty
         let display_in_shortage = '0'
-        if (in_shortage < 0) {
-          display_in_shortage = `+${Math.abs(in_shortage)}`
-        } else if (in_shortage > 0) {
-          display_in_shortage = `-${in_shortage}`
-        }
+        if (in_shortage < 0) display_in_shortage = `+${Math.abs(in_shortage)}`
+        else if (in_shortage > 0) display_in_shortage = `-${in_shortage}`
 
         return {
           id: order.id,
@@ -766,30 +626,22 @@ export default function Home() {
         }
       }) ?? []
 
-      // 필터링 (대소문자 구분 없이)
       const filteredData = inventoryData.filter(item => {
         if (filters.company && !item.company.toLowerCase().includes(filters.company.toLowerCase())) return false
         if (filters.chajong && !item.chajong.toLowerCase().includes(filters.chajong.toLowerCase())) return false
         if (filters.pumbeon && !item.pumbeon.toLowerCase().includes(filters.pumbeon.toLowerCase())) return false
-        
         return true
       })
 
-      // 정렬
       filteredData.sort((a, b) => {
-        let aValue: string | number = a[sortBy as keyof InventoryItem] as string | number
-        let bValue: string | number = b[sortBy as keyof InventoryItem] as string | number
-        
+        let aValue = a[sortBy as keyof InventoryItem] as string | number
+        let bValue = b[sortBy as keyof InventoryItem] as string | number
         if (typeof aValue === 'string' && typeof bValue === 'string') {
           aValue = aValue.toLowerCase()
           bValue = bValue.toLowerCase()
         }
-        
-        if (sortOrder === 'asc') {
-          return aValue < bValue ? -1 : aValue > bValue ? 1 : 0
-        } else {
-          return aValue > bValue ? -1 : aValue < bValue ? 1 : 0
-        }
+        if (sortOrder === 'asc') return aValue < bValue ? -1 : aValue > bValue ? 1 : 0
+        return aValue > bValue ? -1 : aValue < bValue ? 1 : 0
       })
 
       setData(filteredData)
@@ -802,21 +654,14 @@ export default function Home() {
     }
   }, [filters, sortBy, sortOrder, showToast])
 
-  // 옵션 목록 로드
   const loadOptions = useCallback(async () => {
     try {
-      const { data, error } = await supabase
-        .from('order_register')
-        .select('company, chajong, pumbeon, pm')
-        .not('company', 'is', null)
-
+      const { data, error } = await supabase.from('order_register').select('company, chajong, pumbeon, pm').not('company', 'is', null)
       if (error) throw error
-
       const uniqueCompanies = [...new Set(data?.map(item => item.company) ?? [])]
       const uniqueChajongs = [...new Set(data?.map(item => item.chajong) ?? [])]
       const uniquePumbeons = [...new Set(data?.map(item => item.pumbeon) ?? [])]
       const uniquePms = [...new Set(data?.map(item => item.pm) ?? [])]
-
       setCompanies(uniqueCompanies.length > 0 ? uniqueCompanies : ['명진', '선경내셔날'])
       setChajongs(uniqueChajongs)
       setPumbeons(uniquePumbeons)
@@ -827,16 +672,10 @@ export default function Home() {
     }
   }, [])
 
-  // 월별 목록 로드
   const loadMonths = useCallback(async () => {
     try {
-      const { data, error } = await supabase
-        .from('monthly_data')
-        .select('year_month')
-        .order('year_month', { ascending: false })
-
+      const { data, error } = await supabase.from('monthly_data').select('year_month').order('year_month', { ascending: false })
       if (error) throw error
-
       const uniqueMonths = [...new Set(data?.map(item => item.year_month) ?? [])]
       setMonths(uniqueMonths.length > 0 ? uniqueMonths : [getCurrentMonth()])
     } catch (error) {
@@ -845,29 +684,15 @@ export default function Home() {
     }
   }, [])
 
-  // CSV 내보내기
+  useEffect(() => {
+    loadData()
+    loadOptions()
+    loadMonths()
+  }, [loadData, loadOptions, loadMonths])
+
   const exportCSV = () => {
-    const headers = [
-      '업체명', '차종', '품번', '품명',
-      '입고', '재고', '미입고/과입고', '발주수량', '반출', '비고'
-    ]
-
-    const csvContent = [
-      headers.join(','),
-      ...data.map(item => [
-        item.company,
-        item.chajong,
-        item.pumbeon,
-        item.pm,
-        item.in_qty,
-        item.stock_qty,
-        item.in_shortage,
-        item.order_qty,
-        item.out_qty,
-        item.remark
-      ].join(','))
-    ].join('\n')
-
+    const headers = ['업체명', '차종', '품번', '품명', '입고', '재고', '미입고/과입고', '발주수량', '반출', '비고']
+    const csvContent = [headers.join(','), ...data.map(item => [item.company, item.chajong, item.pumbeon, item.pm, item.in_qty, item.stock_qty, item.in_shortage, item.order_qty, item.out_qty, item.remark].join(','))].join('\n')
     const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' })
     const link = document.createElement('a')
     link.href = URL.createObjectURL(blob)
@@ -875,19 +700,6 @@ export default function Home() {
     link.click()
   }
 
-  useEffect(() => {
-    loadData()
-    loadOptions()
-    loadMonths()
-  }, [loadData, loadOptions, loadMonths])
-
-  const getShortageColor = (shortage: string) => {
-    if (shortage.startsWith('+')) return 'text-green-600'
-    if (shortage.startsWith('-')) return 'text-red-600'
-    return 'text-gray-600'
-  }
-
-  // 인라인 편집 핸들러
   const handleCellDoubleClick = (item: InventoryItem, field: 'in_qty' | 'stock_qty' | 'order_qty') => {
     setEditingCell({ itemId: item.id, field })
     setEditValue(item[field].toString())
@@ -895,75 +707,44 @@ export default function Home() {
 
   const handleCellSave = async (item: InventoryItem) => {
     if (!editingCell) return
-
     let newValue: number
     const trimmedValue = editValue.trim()
-    
-    // + 또는 - 기호가 있으면 누적 계산
-    if (trimmedValue.startsWith('+')) {
-      const diff = parseFloat(trimmedValue.slice(1)) || 0
-      newValue = item[editingCell.field] + diff
-    } else if (trimmedValue.startsWith('-')) {
-      const diff = parseFloat(trimmedValue.slice(1)) || 0
-      newValue = item[editingCell.field] - diff
-    } else {
-      newValue = parseFloat(trimmedValue) || 0
-    }
+    if (trimmedValue.startsWith('+')) newValue = item[editingCell.field] + (parseFloat(trimmedValue.slice(1)) || 0)
+    else if (trimmedValue.startsWith('-')) newValue = item[editingCell.field] - (parseFloat(trimmedValue.slice(1)) || 0)
+    else newValue = parseFloat(trimmedValue) || 0
 
     const oldValue = item[editingCell.field]
     const diff = newValue - oldValue
 
     try {
-      // 월별 데이터 업데이트
       const currentMonth = new Date().toISOString().slice(0, 7)
-      await supabase
-        .from('monthly_data')
-        .select('*')
-        .eq('year_month', currentMonth)
-        .eq('order_id', item.id)
-        .single()
-
+      await supabase.from('monthly_data').select('*').eq('year_month', currentMonth).eq('order_id', item.id).single()
+      
       let updatedInQty = item.in_qty
       let updatedStockQty = item.stock_qty
       let updatedOrderQty = item.order_qty
 
-      if (editingCell.field === 'in_qty') {
-        updatedInQty = newValue
-        updatedStockQty = item.stock_qty + diff // 재고도 자동 조정
-      } else if (editingCell.field === 'stock_qty') {
-        updatedStockQty = newValue
-      } else if (editingCell.field === 'order_qty') {
-        updatedOrderQty = newValue
-      }
+      if (editingCell.field === 'in_qty') { updatedInQty = newValue; updatedStockQty = item.stock_qty + diff }
+      else if (editingCell.field === 'stock_qty') { updatedStockQty = newValue }
+      else if (editingCell.field === 'order_qty') { updatedOrderQty = newValue }
 
-      // monthly_data 업데이트
-      await supabase
-        .from('monthly_data')
-        .upsert({
-          year_month: currentMonth,
-          order_id: item.id,
-          in_qty: updatedInQty,
-          out_qty: item.out_qty,
-          stock_qty: updatedStockQty,
-          order_qty: updatedOrderQty
-        })
+      await supabase.from('monthly_data').upsert({
+        year_month: currentMonth,
+        order_id: item.id,
+        in_qty: updatedInQty,
+        out_qty: item.out_qty,
+        stock_qty: updatedStockQty,
+        order_qty: updatedOrderQty
+      })
 
-      // 수정 이력 저장
-      const userName = localStorage.getItem('userName') || '사용자'
-      await supabase
-        .from('edit_history')
-        .insert({
-          order_id: item.id,
-          user_name: userName,
-          changed_fields: [{
-            field: editingCell.field === 'in_qty' ? '입고' : editingCell.field === 'stock_qty' ? '재고' : '월발주수량',
-            old_value: oldValue,
-            new_value: newValue
-          }]
-        })
+      await supabase.from('edit_history').insert({
+        order_id: item.id,
+        user_name: localStorage.getItem('userName') || '사용자',
+        changed_fields: [{ field: editingCell.field === 'in_qty' ? '입고' : editingCell.field === 'stock_qty' ? '재고' : '월발주수량', old_value: oldValue, new_value: newValue }]
+      })
 
       setEditingCell(null)
-      loadData() // 데이터 다시 로드
+      loadData()
       showToast('저장되었습니다.', 'success')
     } catch (error) {
       const message = handleError(error, '셀 저장')
@@ -971,472 +752,214 @@ export default function Home() {
     }
   }
 
-  const handleCellCancel = () => {
-    setEditingCell(null)
-    setEditValue('')
+  const getShortageColor = (shortage: string) => {
+    if (shortage.startsWith('+')) return 'text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full'
+    if (shortage.startsWith('-')) return 'text-red-600 bg-red-50 px-2 py-0.5 rounded-full'
+    return 'text-zinc-500'
   }
 
-  // 페이지네이션
   const totalPages = Math.ceil(data.length / itemsPerPage)
-  const startIndex = (currentPage - 1) * itemsPerPage
-  const endIndex = startIndex + itemsPerPage
-  const paginatedData = data.slice(startIndex, endIndex)
+  const paginatedData = data.slice((currentPage - 1) * itemsPerPage, (currentPage - 1) * itemsPerPage + itemsPerPage)
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-purple-50/30">
-      {/* 메인 컨텐츠 */}
-      <div className="max-w-7xl mx-auto px-6 lg:px-8 py-12">
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-100">
-          <div className="p-8">
-            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-8 space-y-4 sm:space-y-0">
-              <div>
-                <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 flex items-center mb-2">
-                  <div className="p-2 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 mr-3">
-                    <Search className="h-5 w-5 text-white" />
-                  </div>
-                  재고 현황
-                </h2>
-                <p className="text-sm text-gray-500 ml-14">전체 재고 현황을 확인하고 관리하세요</p>
-              </div>
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-3">
-                <button
-                  onClick={() => {
-                    setSelectedItem(undefined)
-                    setShowInboundModal(true)
-                  }}
-                  className="flex items-center justify-center px-5 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all shadow-sm hover:shadow-md text-sm font-medium"
-                >
-                  <Plus className="h-4 w-4 mr-1.5" />
-                  입고등록
-                </button>
-                <button
-                  onClick={exportCSV}
-                  className="flex items-center justify-center px-5 py-2.5 bg-white text-gray-700 rounded-lg border border-gray-200 hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm hover:shadow-md text-sm font-medium"
-                >
-                  <Download className="h-4 w-4 mr-1.5" />
-                  내보내기
-                </button>
-              </div>
+    <div className="min-h-screen bg-white">
+      <div className="max-w-[1600px] mx-auto px-6 py-8">
+        
+        {/* Header Section */}
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+          <div>
+            <h1 className="text-2xl font-bold text-zinc-900 tracking-tight">Inventory Status</h1>
+            <p className="text-sm text-zinc-500 mt-1">Manage your stock levels and orders in real-time.</p>
+          </div>
+          <div className="flex gap-3">
+            <button
+              onClick={() => { setSelectedItem(undefined); setShowInboundModal(true) }}
+              className="flex items-center justify-center px-4 py-2 bg-zinc-900 text-white rounded-lg hover:bg-zinc-800 transition-all shadow-sm text-sm font-medium"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add Item
+            </button>
+            <button
+              onClick={exportCSV}
+              className="flex items-center justify-center px-4 py-2 bg-white text-zinc-700 rounded-lg border border-zinc-200 hover:bg-zinc-50 transition-all text-sm font-medium"
+            >
+              <Download className="h-4 w-4 mr-2" />
+              Export CSV
+            </button>
+          </div>
+        </div>
+
+        {/* Filters Bar */}
+        <div className="bg-zinc-50/50 p-4 rounded-xl border border-zinc-100 mb-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+            <div className="relative">
+              <select
+                value={filters.month}
+                onChange={(e) => setFilters(prev => ({ ...prev, month: e.target.value }))}
+                className="w-full pl-3 pr-10 py-2 bg-white border border-zinc-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 appearance-none"
+              >
+                {months.map(month => <option key={month} value={month}>{month}</option>)}
+              </select>
+              <Filter className="absolute right-3 top-2.5 h-4 w-4 text-zinc-400 pointer-events-none" />
             </div>
+            <Combobox value={filters.company} onChange={(v) => setFilters(p => ({ ...p, company: v }))} options={companies} placeholder="업체명 검색" />
+            <Combobox value={filters.chajong} onChange={(v) => setFilters(p => ({ ...p, chajong: v }))} options={chajongs} placeholder="차종 검색" />
+            <Combobox value={filters.pumbeon} onChange={(v) => setFilters(p => ({ ...p, pumbeon: v }))} options={pumbeons} placeholder="품번 검색" />
+            <button
+              onClick={loadData}
+              className="w-full px-4 py-2 bg-white text-zinc-900 border border-zinc-200 rounded-lg hover:bg-zinc-50 transition-all text-sm font-medium"
+            >
+              Apply Filters
+            </button>
+          </div>
+        </div>
 
-            {/* 검색 필터 */}
-            <div className="space-y-4 mb-8">
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-                <div>
-                  <label htmlFor="filter-month" className="block text-sm font-medium text-gray-700 mb-2">월별</label>
-                  <select
-                    id="filter-month"
-                    value={filters.month}
-                    onChange={(e) => setFilters(prev => ({ ...prev, month: e.target.value }))}
-                    aria-label="월별 필터"
-                    className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white text-sm transition-all"
-                  >
-                    {months.map(month => (
-                      <option key={month} value={month}>{month}</option>
-                    ))}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">업체명</label>
-                  <Combobox
-                    value={filters.company}
-                    onChange={(value) => setFilters(prev => ({ ...prev, company: value }))}
-                    options={companies}
-                    placeholder="업체명 선택 또는 입력"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">차종</label>
-                  <Combobox
-                    value={filters.chajong}
-                    onChange={(value) => setFilters(prev => ({ ...prev, chajong: value }))}
-                    options={chajongs}
-                    placeholder="차종 선택 또는 입력"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">품번</label>
-                  <Combobox
-                    value={filters.pumbeon}
-                    onChange={(value) => setFilters(prev => ({ ...prev, pumbeon: value }))}
-                    options={pumbeons}
-                    placeholder="품번 선택 또는 입력"
-                  />
-                </div>
-                <div className="flex items-end">
-                  <button
-                    onClick={loadData}
-                    className="w-full px-4 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all shadow-sm hover:shadow-md flex items-center justify-center text-sm font-medium"
-                  >
-                    <Search className="h-4 w-4 mr-1" />
-                    조회
-                  </button>
-                </div>
-              </div>
+        {/* Data Table */}
+        <div className="border border-zinc-200 rounded-xl overflow-hidden shadow-sm bg-white">
+          <div className="overflow-x-auto">
+            <table className="w-full divide-y divide-zinc-200">
+              <thead className="bg-zinc-50">
+                <tr>
+                  {[
+                    { key: 'company', label: 'Company' },
+                    { key: 'chajong', label: 'Model' },
+                    { key: 'pumbeon', label: 'Part No' },
+                    { key: 'pm', label: 'Part Name' },
+                    { key: 'in_qty', label: 'Inbound', align: 'right' },
+                    { key: 'stock_qty', label: 'Stock', align: 'right' },
+                    { key: 'in_shortage', label: 'Shortage', align: 'right' },
+                    { key: 'order_qty', label: 'Order', align: 'right' },
+                    { key: 'out_qty', label: 'Outbound', align: 'right' },
+                  ].map((col) => (
+                    <th 
+                      key={col.key}
+                      onClick={() => { setSortBy(col.key); setSortOrder(sortBy === col.key && sortOrder === 'asc' ? 'desc' : 'asc') }}
+                      className={`px-6 py-3 text-xs font-semibold text-zinc-500 uppercase tracking-wider cursor-pointer hover:bg-zinc-100 transition-colors ${col.align === 'right' ? 'text-right' : 'text-left'}`}
+                    >
+                      <div className={`flex items-center gap-1 ${col.align === 'right' ? 'justify-end' : ''}`}>
+                        {col.label}
+                        {sortBy === col.key && <ArrowUpDown className="h-3 w-3" />}
+                      </div>
+                    </th>
+                  ))}
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-zinc-500 uppercase tracking-wider">Note</th>
+                  <th className="px-6 py-3 text-center text-xs font-semibold text-zinc-500 uppercase tracking-wider">Action</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-zinc-100">
+                {loading ? (
+                  <tr><td colSpan={11} className="px-6 py-12 text-center text-zinc-500">Loading data...</td></tr>
+                ) : paginatedData.length === 0 ? (
+                  <tr><td colSpan={11} className="px-6 py-12 text-center text-zinc-500">No data found</td></tr>
+                ) : (
+                  paginatedData.map((item) => (
+                    <tr key={item.id} className="hover:bg-zinc-50 transition-colors group">
+                      <td className="px-6 py-4 text-sm text-zinc-900 font-medium">{item.company}</td>
+                      <td className="px-6 py-4 text-sm text-zinc-600">{item.chajong}</td>
+                      <td className="px-6 py-4 text-sm text-zinc-600 font-mono">{item.pumbeon}</td>
+                      <td className="px-6 py-4 text-sm text-zinc-600 max-w-[200px] truncate" title={item.pm}>{item.pm}</td>
+                      
+                      {/* Numeric Cells with Inline Edit */}
+                      {['in_qty', 'stock_qty', 'order_qty'].map(field => (
+                        <td 
+                          key={field}
+                          className="px-6 py-4 text-sm text-right cursor-pointer hover:bg-zinc-100"
+                          onDoubleClick={() => handleCellDoubleClick(item, field as any)}
+                        >
+                          {editingCell?.itemId === item.id && editingCell.field === field ? (
+                            <input
+                              autoFocus
+                              type="text"
+                              value={editValue}
+                              onChange={(e) => setEditValue(e.target.value)}
+                              onBlur={() => handleCellSave(item)}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') handleCellSave(item)
+                                else if (e.key === 'Escape') { setEditingCell(null); setEditValue('') }
+                              }}
+                              className="w-20 px-1 py-0.5 text-right border border-zinc-900 rounded bg-white text-sm focus:outline-none"
+                              onClick={(e) => e.stopPropagation()}
+                            />
+                          ) : (
+                            <span className={field === 'stock_qty' && item.stock_qty < 0 ? 'text-red-600 font-medium' : 'text-zinc-700'}>
+                              {item[field as keyof InventoryItem].toLocaleString()}
+                            </span>
+                          )}
+                        </td>
+                      ))}
 
-              {/* 정렬 옵션 */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between space-y-2 sm:space-y-0 sm:space-x-4">
-                <div className="flex items-center space-x-2">
-                  <label htmlFor="sort-by" className="text-sm font-medium text-gray-700">정렬:</label>
-                  <select
-                    id="sort-by"
-                    value={sortBy}
-                    onChange={(e) => setSortBy(e.target.value)}
-                    aria-label="정렬 기준"
-                    className="px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                  >
-                    <option value="company">업체명</option>
-                    <option value="chajong">차종</option>
-                    <option value="pumbeon">품번</option>
-                    <option value="pm">품명</option>
-                    <option value="in_qty">입고</option>
-                    <option value="stock_qty">재고</option>
-                    <option value="order_qty">발주수량</option>
-                    <option value="out_qty">반출</option>
-                  </select>
-                  <button
-                    onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
-                    className="px-3 py-1 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition-colors text-sm"
-                  >
-                    {sortOrder === 'asc' ? '↑' : '↓'}
-                  </button>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <label htmlFor="items-per-page" className="text-sm font-medium text-gray-700">보기:</label>
-                  <select
-                    id="items-per-page"
-                    value={itemsPerPage}
-                    onChange={(e) => {
-                      setItemsPerPage(parseInt(e.target.value))
-                      setCurrentPage(1)
-                    }}
-                    aria-label="페이지당 항목 수"
-                    className="px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
-                  >
-                    <option value={15}>15개</option>
-                    <option value={25}>25개</option>
-                    <option value={30}>30개</option>
-                    <option value={50}>50개</option>
-                    <option value={100}>100개</option>
-                    <option value={1000}>전체</option>
-                  </select>
-                  <div className="text-sm text-gray-600">
-                    총 {data.length}개 항목
-                  </div>
-                </div>
-              </div>
-            </div>
+                      {/* Shortage Cell */}
+                      <td className="px-6 py-4 text-right">
+                         <span className={`text-xs font-semibold ${getShortageColor(item.in_shortage)}`}>
+                           {item.in_shortage}
+                         </span>
+                      </td>
 
-            {/* 데이터 테이블 */}
-            <div className="overflow-x-auto rounded-xl border border-gray-100">
-              <table className="min-w-full divide-y divide-gray-100">
-                <thead className="bg-gradient-to-r from-gray-50 to-purple-50/50">
-                  <tr>
-                    <th className="px-4 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider min-w-[100px] sm:min-w-[120px] cursor-pointer hover:bg-purple-50/50 transition-colors"
-                      onClick={() => {
-                        setSortBy('company')
-                        setSortOrder(sortBy === 'company' && sortOrder === 'asc' ? 'desc' : 'asc')
-                      }}
-                    >
-                      <div className="flex items-center">
-                        업체명
-                        {sortBy === 'company' && (
-                          <span className="ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>
-                        )}
-                      </div>
-                    </th>
-                    <th className="px-4 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider min-w-[200px] cursor-pointer hover:bg-purple-50/50 transition-colors"
-                      onClick={() => {
-                        setSortBy('chajong')
-                        setSortOrder(sortBy === 'chajong' && sortOrder === 'asc' ? 'desc' : 'asc')
-                      }}
-                    >
-                      <div className="flex items-center">
-                        차종
-                        {sortBy === 'chajong' && (
-                          <span className="ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>
-                        )}
-                      </div>
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[180px] cursor-pointer hover:bg-gray-100"
-                      onClick={() => {
-                        setSortBy('pumbeon')
-                        setSortOrder(sortBy === 'pumbeon' && sortOrder === 'asc' ? 'desc' : 'asc')
-                      }}
-                    >
-                      <div className="flex items-center">
-                        품번
-                        {sortBy === 'pumbeon' && (
-                          <span className="ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>
-                        )}
-                      </div>
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[250px] cursor-pointer hover:bg-gray-100"
-                      onClick={() => {
-                        setSortBy('pm')
-                        setSortOrder(sortBy === 'pm' && sortOrder === 'asc' ? 'desc' : 'asc')
-                      }}
-                    >
-                      <div className="flex items-center">
-                        품명
-                        {sortBy === 'pm' && (
-                          <span className="ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>
-                        )}
-                      </div>
-                    </th>
-                    <th className="px-4 py-4 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider min-w-[80px] cursor-pointer hover:bg-purple-50/50 transition-colors"
-                      onClick={() => {
-                        setSortBy('in_qty')
-                        setSortOrder(sortBy === 'in_qty' && sortOrder === 'asc' ? 'desc' : 'asc')
-                      }}
-                    >
-                      <div className="flex items-center justify-end">
-                        입고
-                        {sortBy === 'in_qty' && (
-                          <span className="ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>
-                        )}
-                      </div>
-                    </th>
-                    <th className="px-4 py-4 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider min-w-[80px] cursor-pointer hover:bg-purple-50/50 transition-colors"
-                      onClick={() => {
-                        setSortBy('stock_qty')
-                        setSortOrder(sortBy === 'stock_qty' && sortOrder === 'asc' ? 'desc' : 'asc')
-                      }}
-                    >
-                      <div className="flex items-center justify-end">
-                        재고
-                        {sortBy === 'stock_qty' && (
-                          <span className="ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>
-                        )}
-                      </div>
-                    </th>
-                    <th className="px-4 py-4 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider min-w-[120px]">미입고/과입고</th>
-                    <th className="px-4 py-4 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider min-w-[80px] cursor-pointer hover:bg-purple-50/50 transition-colors"
-                      onClick={() => {
-                        setSortBy('order_qty')
-                        setSortOrder(sortBy === 'order_qty' && sortOrder === 'asc' ? 'desc' : 'asc')
-                      }}
-                    >
-                      <div className="flex items-center justify-end">
-                        발주수량
-                        {sortBy === 'order_qty' && (
-                          <span className="ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>
-                        )}
-                      </div>
-                    </th>
-                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[100px] cursor-pointer hover:bg-gray-100"
-                      onClick={() => {
-                        setSortBy('out_qty')
-                        setSortOrder(sortBy === 'out_qty' && sortOrder === 'asc' ? 'desc' : 'asc')
-                      }}
-                    >
-                      <div className="flex items-center justify-end">
-                        반출
-                        {sortBy === 'out_qty' && (
-                          <span className="ml-1">{sortOrder === 'asc' ? '↑' : '↓'}</span>
-                        )}
-                      </div>
-                    </th>
-                    <th className="px-4 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider min-w-[150px]">비고</th>
-                    <th className="px-4 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider min-w-[100px]">작업</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-100">
-                  {loading ? (
-                    <tr>
-                      <td colSpan={11} className="px-6 py-8 text-center text-gray-400">
-                        <div className="flex items-center justify-center">
-                          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-600"></div>
-                          <span className="ml-3">데이터를 불러오는 중...</span>
-                        </div>
+                      <td className="px-6 py-4 text-sm text-right text-zinc-700">{item.out_qty.toLocaleString()}</td>
+                      
+                      <td className="px-6 py-4 text-sm text-zinc-500 max-w-[150px] truncate" title={item.remark}>{item.remark || '-'}</td>
+                      
+                      <td className="px-6 py-4 text-center">
+                        <button
+                          onClick={(e) => { e.stopPropagation(); setSelectedItem(item); setShowEditModal(true) }}
+                          className="p-1.5 rounded-md text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 transition-colors"
+                        >
+                          <Edit2 className="h-4 w-4" />
+                        </button>
                       </td>
                     </tr>
-                  ) : paginatedData.length === 0 ? (
-                    <tr>
-                      <td colSpan={11} className="px-6 py-12 text-center text-gray-400">
-                        데이터가 없습니다.
-                      </td>
-                    </tr>
-                  ) : (
-                    paginatedData.map((item) => (
-                      <tr 
-                        key={item.id} 
-                        className="hover:bg-purple-50/30 transition-colors"
-                      >
-                        <td className="px-4 py-4 text-sm text-gray-900 break-words font-medium">{item.company}</td>
-                        <td className="px-4 py-4 text-sm text-gray-900 break-words" title={item.chajong}>
-                          <div className="max-w-[150px] sm:max-w-[200px] truncate">{item.chajong}</div>
-                        </td>
-                        <td className="px-4 py-4 text-sm text-gray-900 break-words" title={item.pumbeon}>
-                          <div className="max-w-[130px] sm:max-w-[180px] truncate">{item.pumbeon}</div>
-                        </td>
-                        <td className="px-4 py-4 text-sm text-gray-900 break-words" title={item.pm}>
-                          <div className="max-w-[200px] sm:max-w-[250px] truncate">{item.pm}</div>
-                        </td>
-                        <td 
-                          className="px-4 py-4 text-sm text-gray-900 text-right cursor-pointer hover:bg-purple-50/50 transition-colors"
-                          onDoubleClick={() => handleCellDoubleClick(item, 'in_qty')}
-                        >
-                          {editingCell?.itemId === item.id && editingCell.field === 'in_qty' ? (
-                            <div className="flex items-center justify-end gap-2">
-                              <input
-                                type="text"
-                                value={editValue}
-                                onChange={(e) => setEditValue(e.target.value)}
-                                onBlur={() => handleCellSave(item)}
-                                onKeyDown={(e) => {
-                                  if (e.key === 'Enter') {
-                                    handleCellSave(item)
-                                  } else if (e.key === 'Escape') {
-                                    handleCellCancel()
-                                  }
-                                }}
-                                placeholder="숫자 또는 +10, -5"
-                                autoFocus
-                                className="w-24 px-2 py-1 border border-blue-500 rounded text-right text-sm"
-                                onClick={(e) => e.stopPropagation()}
-                              />
-                            </div>
-                          ) : (
-                            item.in_qty.toLocaleString()
-                          )}
-                        </td>
-                        <td 
-                          className="px-2 sm:px-4 py-3 sm:py-4 text-xs sm:text-sm text-gray-900 text-right cursor-pointer hover:bg-blue-50"
-                          onDoubleClick={() => handleCellDoubleClick(item, 'stock_qty')}
-                        >
-                          {editingCell?.itemId === item.id && editingCell.field === 'stock_qty' ? (
-                            <div className="flex items-center justify-end gap-2">
-                              <input
-                                type="text"
-                                value={editValue}
-                                onChange={(e) => setEditValue(e.target.value)}
-                                onBlur={() => handleCellSave(item)}
-                                onKeyDown={(e) => {
-                                  if (e.key === 'Enter') {
-                                    handleCellSave(item)
-                                  } else if (e.key === 'Escape') {
-                                    handleCellCancel()
-                                  }
-                                }}
-                                placeholder="숫자 또는 +10, -5"
-                                autoFocus
-                                className="w-24 px-2 py-1 border border-blue-500 rounded text-right text-sm"
-                                onClick={(e) => e.stopPropagation()}
-                              />
-                            </div>
-                          ) : (
-                            item.stock_qty.toLocaleString()
-                          )}
-                        </td>
-                        <td className={`px-2 sm:px-4 py-3 sm:py-4 text-xs sm:text-sm text-right font-medium ${getShortageColor(item.in_shortage)}`}>
-                          {item.in_shortage}
-                        </td>
-                        <td 
-                          className="px-2 sm:px-4 py-3 sm:py-4 text-xs sm:text-sm text-gray-900 text-right cursor-pointer hover:bg-blue-50"
-                          onDoubleClick={() => handleCellDoubleClick(item, 'order_qty')}
-                        >
-                          {editingCell?.itemId === item.id && editingCell.field === 'order_qty' ? (
-                            <div className="flex items-center justify-end gap-2">
-                              <input
-                                type="text"
-                                value={editValue}
-                                onChange={(e) => setEditValue(e.target.value)}
-                                onBlur={() => handleCellSave(item)}
-                                onKeyDown={(e) => {
-                                  if (e.key === 'Enter') {
-                                    handleCellSave(item)
-                                  } else if (e.key === 'Escape') {
-                                    handleCellCancel()
-                                  }
-                                }}
-                                placeholder="숫자 또는 +10, -5"
-                                autoFocus
-                                className="w-24 px-2 py-1 border border-blue-500 rounded text-right text-sm"
-                                onClick={(e) => e.stopPropagation()}
-                              />
-                            </div>
-                          ) : (
-                            item.order_qty.toLocaleString()
-                          )}
-                        </td>
-                        <td className="px-4 py-4 text-sm text-gray-900 text-right whitespace-nowrap">{item.out_qty.toLocaleString()}</td>
-                        <td className="px-4 py-4 text-sm text-gray-900 break-words">
-                          {item.remark ? (
-                            <div className="relative group">
-                              <FileText className="h-4 w-4 text-blue-500 inline-block" />
-                              <div className="absolute left-0 bottom-full mb-2 hidden group-hover:block z-10 w-64 p-2 bg-gray-800 text-white text-xs rounded shadow-lg">
-                                {item.remark}
-                              </div>
-                            </div>
-                          ) : (
-                            <span className="text-gray-400">-</span>
-                          )}
-                        </td>
-                        <td className="px-4 py-4 text-center">
-                          <button
-                            onClick={(e) => {
-                              e.stopPropagation()
-                              setSelectedItem(item)
-                              setShowEditModal(true)
-                            }}
-                            className="px-3 py-1.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all shadow-sm hover:shadow-md text-xs font-medium"
-                          >
-                            <Edit className="h-3 w-3 inline mr-1" />
-                            수정
-                          </button>
-                        </td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+          
+          {/* Pagination */}
+          <div className="border-t border-zinc-200 px-6 py-4 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-zinc-500">Show</span>
+              <select 
+                value={itemsPerPage} 
+                onChange={(e) => { setItemsPerPage(Number(e.target.value)); setCurrentPage(1) }}
+                className="text-sm border border-zinc-200 rounded px-2 py-1 focus:ring-zinc-900"
+              >
+                <option value={15}>15</option>
+                <option value={50}>50</option>
+                <option value={100}>100</option>
+                <option value={1000}>All</option>
+              </select>
             </div>
-
-            {/* 페이지네이션 */}
-            {totalPages > 1 && (
-              <div className="mt-4 flex justify-center items-center space-x-2">
-                <button
-                  onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-                  disabled={currentPage === 1}
-                  className="px-3 py-1 border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  이전
-                </button>
-                <span className="text-sm text-gray-600">
-                  {currentPage} / {totalPages}
-                </span>
-                <button
-                  onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-                  disabled={currentPage === totalPages}
-                  className="px-3 py-1 border border-gray-300 rounded-md disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  다음
-                </button>
-              </div>
-            )}
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="px-3 py-1 text-sm border border-zinc-200 rounded hover:bg-zinc-50 disabled:opacity-50"
+              >
+                Previous
+              </button>
+              <span className="text-sm text-zinc-600">Page {currentPage} of {totalPages}</span>
+              <button
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+                className="px-3 py-1 text-sm border border-zinc-200 rounded hover:bg-zinc-50 disabled:opacity-50"
+              >
+                Next
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* 입고등록 모달 */}
       <InboundModal
         isOpen={showInboundModal}
-        onClose={() => {
-          setShowInboundModal(false)
-          setSelectedItem(undefined)
-        }}
+        onClose={() => { setShowInboundModal(false); setSelectedItem(undefined) }}
         item={selectedItem}
         onSave={loadData}
       />
 
-      {/* 수정 모달 */}
       <EditModal
         isOpen={showEditModal}
-        onClose={() => {
-          setShowEditModal(false)
-          setSelectedItem(undefined)
-        }}
+        onClose={() => { setShowEditModal(false); setSelectedItem(undefined) }}
         item={selectedItem}
         onSave={loadData}
       />

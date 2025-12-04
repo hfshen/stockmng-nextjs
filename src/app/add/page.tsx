@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { ArrowLeft, Save } from 'lucide-react'
+import { ArrowLeft, Save, Plus } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -125,42 +125,58 @@ export default function AddItem() {
   }, [])
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-purple-50/30">
-      {/* 메인 컨텐츠 */}
-      <div className="max-w-4xl mx-auto px-6 lg:px-8 py-12">
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-100">
-          <div className="p-8">
-            <div className="flex items-center mb-8">
-              <div className="p-2 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 mr-3">
-                <Save className="h-5 w-5 text-white" />
-              </div>
-              <h2 className="text-2xl font-bold text-gray-900">입고등록</h2>
-            </div>
+    <div className="min-h-screen bg-zinc-50">
+      <div className="max-w-3xl mx-auto px-6 py-12">
+        
+        {/* Header */}
+        <div className="mb-8">
+          <Link 
+            href="/inventory" 
+            className="inline-flex items-center text-sm text-zinc-500 hover:text-zinc-900 mb-4 transition-colors"
+          >
+            <ArrowLeft className="w-4 h-4 mr-1" />
+            Back to Inventory
+          </Link>
+          <h1 className="text-3xl font-bold text-zinc-900 tracking-tight">New Inbound Item</h1>
+          <p className="text-zinc-500 mt-2">Register new stock items or update existing inventory counts.</p>
+        </div>
 
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+        <div className="bg-white rounded-xl shadow-sm border border-zinc-200 overflow-hidden">
+          <form onSubmit={handleSubmit} className="p-8 space-y-8">
+            
+            {/* Basic Info Section */}
+            <div>
+              <h3 className="text-lg font-medium text-zinc-900 mb-4 flex items-center gap-2">
+                <div className="w-1 h-6 bg-zinc-900 rounded-full"></div>
+                Item Details
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label htmlFor="add-company" className="block text-sm font-medium text-gray-700 mb-1">
-                    업체명 *
+                  <label htmlFor="add-company" className="block text-sm font-medium text-zinc-700 mb-1.5">
+                    Supplier <span className="text-red-500">*</span>
                   </label>
-                  <select
-                    id="add-company"
-                    value={formData.company}
-                    onChange={(e) => setFormData(prev => ({ ...prev, company: e.target.value }))}
-                    required
-                    aria-label="업체명 선택"
-                    className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white text-sm transition-all"
-                  >
-                    <option value="">업체를 선택하세요</option>
-                    {companies.map(company => (
-                      <option key={company} value={company}>{company}</option>
-                    ))}
-                  </select>
+                  <div className="relative">
+                    <select
+                      id="add-company"
+                      value={formData.company}
+                      onChange={(e) => setFormData(prev => ({ ...prev, company: e.target.value }))}
+                      required
+                      className="w-full px-3 py-2.5 bg-zinc-50 border border-zinc-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:border-transparent transition-all appearance-none"
+                    >
+                      <option value="">Select Supplier</option>
+                      {companies.map(company => (
+                        <option key={company} value={company}>{company}</option>
+                      ))}
+                    </select>
+                    <div className="absolute right-3 top-3 pointer-events-none">
+                      <svg className="w-4 h-4 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </div>
+                  </div>
                 </div>
 
                 <div>
-                  <label htmlFor="add-chajong" className="block text-sm font-medium text-gray-700 mb-1">
-                    차종 *
+                  <label htmlFor="add-chajong" className="block text-sm font-medium text-zinc-700 mb-1.5">
+                    Model <span className="text-red-500">*</span>
                   </label>
                   <input
                     id="add-chajong"
@@ -168,14 +184,14 @@ export default function AddItem() {
                     value={formData.chajong}
                     onChange={(e) => setFormData(prev => ({ ...prev, chajong: e.target.value }))}
                     required
-                    placeholder="차종을 입력하세요"
-                    className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white text-sm transition-all"
+                    placeholder="e.g. 9BUB"
+                    className="w-full px-3 py-2.5 bg-zinc-50 border border-zinc-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:border-transparent transition-all"
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="add-pumbeon" className="block text-sm font-medium text-gray-700 mb-1">
-                    품번 *
+                  <label htmlFor="add-pumbeon" className="block text-sm font-medium text-zinc-700 mb-1.5">
+                    Part Number <span className="text-red-500">*</span>
                   </label>
                   <input
                     id="add-pumbeon"
@@ -183,109 +199,114 @@ export default function AddItem() {
                     value={formData.pumbeon}
                     onChange={(e) => setFormData(prev => ({ ...prev, pumbeon: e.target.value }))}
                     required
-                    placeholder="품번을 입력하세요"
-                    className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white text-sm transition-all"
+                    placeholder="e.g. GA29120A"
+                    className="w-full px-3 py-2.5 bg-zinc-50 border border-zinc-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:border-transparent transition-all font-mono"
                   />
                 </div>
 
                 <div>
-                  <label htmlFor="add-pm" className="block text-sm font-medium text-gray-700 mb-1">
-                    품명
+                  <label htmlFor="add-pm" className="block text-sm font-medium text-zinc-700 mb-1.5">
+                    Part Name
                   </label>
                   <input
                     id="add-pm"
                     type="text"
                     value={formData.pm}
                     onChange={(e) => setFormData(prev => ({ ...prev, pm: e.target.value }))}
-                    placeholder="품명을 입력하세요"
-                    className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white text-sm transition-all"
+                    placeholder="e.g. SIDE WINDOW DEF"
+                    className="w-full px-3 py-2.5 bg-zinc-50 border border-zinc-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:border-transparent transition-all"
                   />
                 </div>
+              </div>
+            </div>
 
+            <div className="h-px bg-zinc-100"></div>
+
+            {/* Quantity Section */}
+            <div>
+              <h3 className="text-lg font-medium text-zinc-900 mb-4 flex items-center gap-2">
+                <div className="w-1 h-6 bg-zinc-900 rounded-full"></div>
+                Stock Information
+              </h3>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
-                  <label htmlFor="add-in-date" className="block text-sm font-medium text-gray-700 mb-1">
-                    입고일자
+                  <label htmlFor="add-in-date" className="block text-sm font-medium text-zinc-700 mb-1.5">
+                    Inbound Date
                   </label>
                   <input
                     id="add-in-date"
                     type="date"
                     value={formData.in_date}
                     onChange={(e) => setFormData(prev => ({ ...prev, in_date: e.target.value }))}
-                    className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white text-sm transition-all"
+                    className="w-full px-3 py-2.5 bg-zinc-50 border border-zinc-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:border-transparent transition-all"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    입고수량
+                  <label htmlFor="add-in-qty" className="block text-sm font-medium text-zinc-700 mb-1.5">
+                    Inbound Quantity
                   </label>
                   <input
+                    id="add-in-qty"
                     type="number"
                     value={formData.in_qty === 0 ? '' : formData.in_qty}
                     onChange={(e) => setFormData(prev => ({ ...prev, in_qty: parseInt(e.target.value) || 0 }))}
-                    onFocus={(e) => {
-                      if (e.target.value === '0' || e.target.value === '') {
-                        e.target.select()
-                      }
-                    }}
-                    placeholder="입고수량을 입력하세요"
+                    onFocus={(e) => e.target.value === '0' && e.target.select()}
                     min="0"
-                    className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white text-sm transition-all"
+                    placeholder="0"
+                    className="w-full px-3 py-2.5 bg-zinc-50 border border-zinc-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:border-transparent transition-all text-right font-mono"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                    발주수량
+                  <label htmlFor="add-order-qty" className="block text-sm font-medium text-zinc-700 mb-1.5">
+                    Order Quantity
                   </label>
                   <input
+                    id="add-order-qty"
                     type="number"
                     value={formData.order_qty === 0 ? '' : formData.order_qty}
                     onChange={(e) => setFormData(prev => ({ ...prev, order_qty: parseInt(e.target.value) || 0 }))}
-                    onFocus={(e) => {
-                      if (e.target.value === '0' || e.target.value === '') {
-                        e.target.select()
-                      }
-                    }}
-                    placeholder="발주수량을 입력하세요"
+                    onFocus={(e) => e.target.value === '0' && e.target.select()}
                     min="0"
-                    className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white text-sm transition-all"
+                    placeholder="0"
+                    className="w-full px-3 py-2.5 bg-zinc-50 border border-zinc-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:border-transparent transition-all text-right font-mono"
                   />
                 </div>
               </div>
+            </div>
 
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  비고
-                </label>
-                <textarea
-                  value={formData.remark}
-                  onChange={(e) => setFormData(prev => ({ ...prev, remark: e.target.value }))}
-                  rows={3}
-                  placeholder="비고를 입력하세요"
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
+            <div>
+              <label htmlFor="add-remark" className="block text-sm font-medium text-zinc-700 mb-1.5">
+                Notes
+              </label>
+              <textarea
+                id="add-remark"
+                value={formData.remark}
+                onChange={(e) => setFormData(prev => ({ ...prev, remark: e.target.value }))}
+                rows={3}
+                placeholder="Additional notes..."
+                className="w-full px-3 py-2.5 bg-zinc-50 border border-zinc-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:border-transparent transition-all resize-none"
+              />
+            </div>
 
-              <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-3 mt-8">
-                <Link
-                  href="/inventory"
-                  className="flex items-center justify-center px-5 py-2.5 bg-white text-gray-700 rounded-lg border border-gray-200 hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm hover:shadow-md font-medium"
-                >
-                  <ArrowLeft className="h-4 w-4 mr-1.5" />
-                  취소
-                </Link>
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="flex items-center justify-center px-5 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed font-medium"
-                >
-                  <Save className="h-4 w-4 mr-1.5" />
-                  {loading ? '저장 중...' : '저장'}
-                </button>
-              </div>
-            </form>
-          </div>
+            <div className="flex justify-end gap-3 pt-4">
+              <Link
+                href="/inventory"
+                className="px-6 py-2.5 bg-white text-zinc-700 rounded-lg border border-zinc-200 hover:bg-zinc-50 font-medium text-sm transition-all"
+              >
+                Cancel
+              </Link>
+              <button
+                type="submit"
+                disabled={loading}
+                className="flex items-center px-6 py-2.5 bg-zinc-900 text-white rounded-lg hover:bg-zinc-800 disabled:opacity-50 font-medium text-sm transition-all shadow-sm"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                {loading ? 'Saving...' : 'Register Item'}
+              </button>
+            </div>
+          </form>
         </div>
       </div>
     </div>

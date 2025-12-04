@@ -1,10 +1,11 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { Settings, Package, UserPlus, Trash2, Plus, Save, Edit } from 'lucide-react'
+import { Package, Trash2, Plus, Edit, ArrowLeft, Settings as SettingsIcon } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import { useToast } from '@/components/Toast'
 import { handleError } from '@/lib/utils'
+import Link from 'next/link'
 
 interface MasterData {
   id: number
@@ -16,493 +17,199 @@ interface MasterData {
 
 export default function Admin() {
   const { showToast } = useToast()
-  const [activeTab, setActiveTab] = useState<'master' | 'users' | 'settings'>('master')
+  const [activeTab, setActiveTab] = useState<'master' | 'settings'>('master')
   const [masterData, setMasterData] = useState<MasterData[]>([])
   const [editingRow, setEditingRow] = useState<number | null>(null)
-  const [newRow, setNewRow] = useState<Partial<MasterData>>({
-    company: '',
-    chajong: '',
-    pumbeon: '',
-    pm: ''
-  })
-  const [itemsPerPage, setItemsPerPage] = useState(1000)
-  const [theme, setTheme] = useState<'white' | 'black' | 'silver'>('white')
-  const [userName, setUserName] = useState('')
+  const [newRow, setNewRow] = useState<Partial<MasterData>>({ company: '', chajong: '', pumbeon: '', pm: '' })
   const [loading, setLoading] = useState(false)
-
-  const loadSettings = () => {
-    const savedTheme = localStorage.getItem('theme') as 'white' | 'black' | 'silver' | null
-    const savedItemsPerPage = localStorage.getItem('itemsPerPage')
-    const savedUserName = localStorage.getItem('userName')
-    if (savedTheme) setTheme(savedTheme)
-    if (savedItemsPerPage) setItemsPerPage(parseInt(savedItemsPerPage))
-    if (savedUserName) setUserName(savedUserName)
-  }
+  const [userName, setUserName] = useState('')
 
   const loadData = useCallback(async () => {
     try {
-      const { data, error } = await supabase
-        .from('order_register')
-        .select('id, company, chajong, pumbeon, pm')
-        .not('company', 'is', null)
-        .order('company')
-
+      const { data, error } = await supabase.from('order_register').select('id, company, chajong, pumbeon, pm').order('company')
       if (error) throw error
-
-      // 중복 제거 (company, chajong, pumbeon 조합이 같은 것)
       const uniqueMap = new Map<string, MasterData>()
       data?.forEach(item => {
         const key = `${item.company}|${item.chajong}|${item.pumbeon}`
-        if (!uniqueMap.has(key)) {
-          uniqueMap.set(key, {
-            id: item.id,
-            company: item.company,
-            chajong: item.chajong,
-            pumbeon: item.pumbeon,
-            pm: item.pm || ''
-          })
-        }
+        if (!uniqueMap.has(key)) uniqueMap.set(key, { ...item, pm: item.pm || '' })
       })
-
       setMasterData(Array.from(uniqueMap.values()))
     } catch (error) {
-      const message = handleError(error, '데이터 로드')
-      showToast(message, 'error')
+      handleError(error, '데이터 로드')
     }
-  }, [showToast])
+  }, [])
 
   useEffect(() => {
     loadData()
-    loadSettings()
+    setUserName(localStorage.getItem('userName') || '')
   }, [loadData])
 
-  useEffect(() => {
-    // 테마 적용
-    const root = document.documentElement
-    if (theme === 'black') {
-      root.style.setProperty('--background', '#0a0a0a')
-      root.style.setProperty('--foreground', '#ededed')
-      document.body.className = 'bg-gray-900 text-gray-100'
-    } else if (theme === 'silver') {
-      root.style.setProperty('--background', '#f3f4f6')
-      root.style.setProperty('--foreground', '#1f2937')
-      document.body.className = 'bg-gray-200 text-gray-800'
-    } else {
-      root.style.setProperty('--background', '#ffffff')
-      root.style.setProperty('--foreground', '#171717')
-      document.body.className = 'bg-gray-50 text-gray-900'
-    }
-    localStorage.setItem('theme', theme)
-  }, [theme])
-
   const handleAdd = async () => {
-    if (!newRow.company || !newRow.chajong || !newRow.pumbeon) {
-      showToast('업체명, 차종, 품번은 필수 입력 항목입니다.', 'warning')
-      return
-    }
-
+    if (!newRow.company || !newRow.chajong || !newRow.pumbeon) return
     setLoading(true)
     try {
-      const { error } = await supabase
-        .from('order_register')
-        .insert({
-          company: newRow.company,
-          chajong: newRow.chajong,
-          pumbeon: newRow.pumbeon,
-          pm: newRow.pm || '',
-          in_qty: 0,
-          out_qty: 0,
-          order_qty: 0
-        })
-        .select('id')
-        .single()
-
+      const { error } = await supabase.from('order_register').insert({ ...newRow, in_qty: 0, out_qty: 0, order_qty: 0 })
       if (error) throw error
-
       setNewRow({ company: '', chajong: '', pumbeon: '', pm: '' })
       loadData()
-      showToast('추가되었습니다.', 'success')
-    } catch (error) {
-      const message = handleError(error, '추가')
-      showToast(message, 'error')
-    } finally {
-      setLoading(false)
-    }
+      showToast('Added successfully.', 'success')
+    } catch (error) { handleError(error, '추가') } finally { setLoading(false) }
   }
 
   const handleUpdate = async (row: MasterData) => {
     setLoading(true)
     try {
-      const { error } = await supabase
-        .from('order_register')
-        .update({
-          company: row.company,
-          chajong: row.chajong,
-          pumbeon: row.pumbeon,
-          pm: row.pm || ''
-        })
-        .eq('id', row.id)
-
+      const { error } = await supabase.from('order_register').update(row).eq('id', row.id)
       if (error) throw error
-
       setEditingRow(null)
       loadData()
-      showToast('수정되었습니다.', 'success')
-    } catch (error) {
-      const message = handleError(error, '수정')
-      showToast(message, 'error')
-    } finally {
-      setLoading(false)
-    }
+      showToast('Updated successfully.', 'success')
+    } catch (error) { handleError(error, '수정') } finally { setLoading(false) }
   }
 
   const handleDelete = async (row: MasterData) => {
-    if (!confirm(`정말 삭제하시겠습니까?`)) return
-
+    if (!confirm('Are you sure?')) return
     setLoading(true)
     try {
-      const { error } = await supabase
-        .from('order_register')
-        .delete()
-        .eq('id', row.id)
-
+      const { error } = await supabase.from('order_register').delete().eq('id', row.id)
       if (error) throw error
-
       loadData()
-      showToast('삭제되었습니다.', 'success')
-    } catch (error) {
-      const message = handleError(error, '삭제')
-      showToast(message, 'error')
-    } finally {
-      setLoading(false)
-    }
+      showToast('Deleted successfully.', 'success')
+    } catch (error) { handleError(error, '삭제') } finally { setLoading(false) }
   }
-
-  const handleSaveSettings = () => {
-    localStorage.setItem('itemsPerPage', itemsPerPage.toString())
-    localStorage.setItem('theme', theme)
-    localStorage.setItem('userName', userName)
-    showToast('설정이 저장되었습니다.', 'success')
-  }
-
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-purple-50/30">
-      <div className="max-w-7xl mx-auto px-6 lg:px-8 py-12">
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-100">
-          <div className="p-8">
-            <div className="flex items-center mb-8">
-              <div className="p-2 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 mr-3">
-                <Settings className="h-5 w-5 text-white" />
-              </div>
-              <h2 className="text-2xl font-bold text-gray-900">관리자 설정</h2>
-            </div>
+    <div className="min-h-screen bg-zinc-50">
+      <div className="max-w-6xl mx-auto px-6 py-12">
+        <div className="mb-8">
+          <Link href="/inventory" className="inline-flex items-center text-sm text-zinc-500 hover:text-zinc-900 mb-4 transition-colors">
+            <ArrowLeft className="w-4 h-4 mr-1" />
+            Back to Inventory
+          </Link>
+          <h1 className="text-3xl font-bold text-zinc-900 tracking-tight">Admin Settings</h1>
+          <p className="text-zinc-500 mt-2">Manage master data and system preferences.</p>
+        </div>
 
-            {/* 탭 메뉴 */}
-            <div className="border-b border-gray-200 mb-6">
-              <nav className="-mb-px flex space-x-8">
-                <button
-                  onClick={() => setActiveTab('master')}
-                  className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                    activeTab === 'master'
-                      ? 'border-blue-500 text-blue-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
-                >
-                  <Package className="h-4 w-4 inline mr-1" />
-                  마스터 데이터
-                </button>
-                <button
-                  onClick={() => setActiveTab('users')}
-                  className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                    activeTab === 'users'
-                      ? 'border-blue-500 text-blue-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
-                >
-                  <UserPlus className="h-4 w-4 inline mr-1" />
-                  회원가입
-                </button>
-                <button
-                  onClick={() => setActiveTab('settings')}
-                  className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                    activeTab === 'settings'
-                      ? 'border-blue-500 text-blue-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
-                >
-                  <Settings className="h-4 w-4 inline mr-1" />
-                  설정
-                </button>
-              </nav>
-            </div>
+        <div className="flex gap-8 items-start">
+           {/* Sidebar Tabs */}
+           <div className="w-64 flex-shrink-0 space-y-1">
+              <button 
+                onClick={() => setActiveTab('master')}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${activeTab === 'master' ? 'bg-zinc-900 text-white shadow-sm' : 'text-zinc-600 hover:bg-zinc-100'}`}
+              >
+                <Package className="w-4 h-4" />
+                Master Data
+              </button>
+              <button 
+                onClick={() => setActiveTab('settings')}
+                className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors ${activeTab === 'settings' ? 'bg-zinc-900 text-white shadow-sm' : 'text-zinc-600 hover:bg-zinc-100'}`}
+              >
+                <SettingsIcon className="w-4 h-4" />
+                Preferences
+              </button>
+           </div>
 
-            {/* 컨텐츠 */}
-            {activeTab === 'master' ? (
-              <div className="space-y-4">
-                {/* 새 행 추가 */}
-                <div className="bg-gray-50 p-4 rounded-lg border-2 border-dashed border-gray-300">
-                  <h3 className="text-sm font-semibold text-gray-700 mb-3">새 항목 추가</h3>
-                  <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
-                    <input
-                      type="text"
-                      value={newRow.company || ''}
-                      onChange={(e) => setNewRow(prev => ({ ...prev, company: e.target.value }))}
-                      placeholder="업체명 *"
-                      className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                    <input
-                      type="text"
-                      value={newRow.chajong || ''}
-                      onChange={(e) => setNewRow(prev => ({ ...prev, chajong: e.target.value }))}
-                      placeholder="차종 *"
-                      className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                    <input
-                      type="text"
-                      value={newRow.pumbeon || ''}
-                      onChange={(e) => setNewRow(prev => ({ ...prev, pumbeon: e.target.value }))}
-                      placeholder="품번 *"
-                      className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                    <input
-                      type="text"
-                      value={newRow.pm || ''}
-                      onChange={(e) => setNewRow(prev => ({ ...prev, pm: e.target.value }))}
-                      placeholder="품명"
-                      className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                    <button
-                      onClick={handleAdd}
-                      disabled={loading || !newRow.company || !newRow.chajong || !newRow.pumbeon}
-                      className="flex items-center justify-center px-5 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed font-medium"
-                    >
-                      <Plus className="h-4 w-4 mr-1.5" />
-                      추가
-                    </button>
-                  </div>
-                </div>
+           {/* Content Area */}
+           <div className="flex-1 bg-white rounded-xl border border-zinc-200 shadow-sm overflow-hidden min-h-[500px]">
+              {activeTab === 'master' ? (
+                 <div className="p-6">
+                    <div className="mb-6 p-4 bg-zinc-50 rounded-lg border border-zinc-100">
+                       <h3 className="text-sm font-semibold text-zinc-900 mb-3">Add New Item</h3>
+                       <div className="grid grid-cols-5 gap-3">
+                          {['Supplier', 'Model', 'Part No', 'Part Name'].map((ph, i) => (
+                             <input 
+                                key={i}
+                                type="text"
+                                placeholder={ph}
+                                aria-label={ph}
+                                value={Object.values(newRow)[i]}
+                                onChange={e => setNewRow(prev => ({ ...prev, [Object.keys(newRow)[i]]: e.target.value }))}
+                                className="px-3 py-2 bg-white border border-zinc-200 rounded text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900"
+                             />
+                          ))}
+                          <button 
+                            onClick={handleAdd}
+                            disabled={loading || !newRow.company}
+                            className="flex items-center justify-center bg-zinc-900 text-white rounded hover:bg-zinc-800 disabled:opacity-50 text-sm font-medium"
+                          >
+                             <Plus className="w-4 h-4 mr-1" /> Add
+                          </button>
+                       </div>
+                    </div>
 
-                {/* 데이터 테이블 */}
-                <div className="border border-gray-100 rounded-xl overflow-hidden">
-                  <table className="min-w-full divide-y divide-gray-100">
-                    <thead className="bg-gradient-to-r from-gray-50 to-purple-50/50">
-                      <tr>
-                        <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                          업체명
-                        </th>
-                        <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                          차종
-                        </th>
-                        <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                          품번
-                        </th>
-                        <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                          품명
-                        </th>
-                        <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-                          작업
-                        </th>
-                      </tr>
-                    </thead>
-                    <tbody className="bg-white divide-y divide-gray-100">
-                      {masterData.map((row) => (
-                        <tr key={row.id} className="hover:bg-purple-50/30 transition-colors">
-                          {editingRow === row.id ? (
-                            <>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <input
-                                  type="text"
-                                  value={row.company}
-                                  onChange={(e) => setMasterData(prev => prev.map(r => r.id === row.id ? { ...r, company: e.target.value } : r))}
-                                  aria-label="업체명"
-                                  placeholder="업체명"
-                                  className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
-                                />
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <input
-                                  type="text"
-                                  value={row.chajong}
-                                  onChange={(e) => setMasterData(prev => prev.map(r => r.id === row.id ? { ...r, chajong: e.target.value } : r))}
-                                  aria-label="차종"
-                                  placeholder="차종"
-                                  className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
-                                />
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <input
-                                  type="text"
-                                  value={row.pumbeon}
-                                  onChange={(e) => setMasterData(prev => prev.map(r => r.id === row.id ? { ...r, pumbeon: e.target.value } : r))}
-                                  aria-label="품번"
-                                  placeholder="품번"
-                                  className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
-                                />
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap">
-                                <input
-                                  type="text"
-                                  value={row.pm}
-                                  onChange={(e) => setMasterData(prev => prev.map(r => r.id === row.id ? { ...r, pm: e.target.value } : r))}
-                                  aria-label="품명"
-                                  placeholder="품명"
-                                  className="w-full px-2 py-1 border border-gray-300 rounded text-sm"
-                                />
-                              </td>
-                              <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                <div className="flex justify-end gap-2">
-                                  <button
-                                    onClick={() => handleUpdate(row)}
-                                    disabled={loading}
-                                    className="text-blue-600 hover:text-blue-900 disabled:opacity-50"
-                                  >
-                                    저장
-                                  </button>
-                                  <button
-                                    onClick={() => {
-                                      setEditingRow(null)
-                                      loadData()
-                                    }}
-                                    className="text-gray-600 hover:text-gray-900"
-                                  >
-                                    취소
-                                  </button>
-                                </div>
-                              </td>
-                            </>
-                          ) : (
-                            <>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{row.company}</td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{row.chajong}</td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{row.pumbeon}</td>
-                              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{row.pm}</td>
-                              <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                                <div className="flex justify-end gap-2">
-                                  <button
-                                    onClick={() => setEditingRow(row.id)}
-                                    disabled={loading}
-                                    aria-label="수정"
-                                    title="수정"
-                                    className="text-blue-600 hover:text-blue-900 disabled:opacity-50"
-                                  >
-                                    <Edit className="h-4 w-4 inline" />
-                                  </button>
-                                  <button
-                                    onClick={() => handleDelete(row)}
-                                    disabled={loading}
-                                    aria-label="삭제"
-                                    title="삭제"
-                                    className="text-red-600 hover:text-red-900 disabled:opacity-50"
-                                  >
-                                    <Trash2 className="h-4 w-4 inline" />
-                                  </button>
-                                </div>
-                              </td>
-                            </>
-                          )}
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            ) : activeTab === 'settings' ? (
-              <div className="space-y-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    사용자 이름
-                  </label>
-                  <input
-                    type="text"
-                    value={userName}
-                    onChange={(e) => setUserName(e.target.value)}
-                    placeholder="수정 이력에 표시될 이름을 입력하세요"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  />
-                  <p className="mt-1 text-xs text-gray-500">재고현황 수정 시 이 이름이 수정 이력에 기록됩니다.</p>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    재고현황 보기 항목 수량
-                  </label>
-                  <select
-                    value={itemsPerPage}
-                    onChange={(e) => setItemsPerPage(parseInt(e.target.value))}
-                    aria-label="재고현황 보기 항목 수량"
-                    title="재고현황 보기 항목 수량"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value={15}>15개</option>
-                    <option value={25}>25개</option>
-                    <option value={30}>30개</option>
-                    <option value={50}>50개</option>
-                    <option value={100}>100개</option>
-                    <option value={1000}>전체</option>
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">
-                    배경 색상
-                  </label>
-                  <div className="grid grid-cols-3 gap-4">
-                    <button
-                      onClick={() => setTheme('white')}
-                      className={`p-4 border-2 rounded-lg transition-all ${
-                        theme === 'white' 
-                          ? 'border-purple-500 bg-gradient-to-br from-purple-50 to-pink-50 shadow-md' 
-                          : 'border-gray-200 hover:border-gray-300 hover:shadow-sm'
-                      }`}
-                    >
-                      <div className="w-full h-12 bg-white rounded mb-2"></div>
-                      <span className="text-sm font-medium">화이트</span>
-                    </button>
-                    <button
-                      onClick={() => setTheme('black')}
-                      className={`p-4 border-2 rounded-lg transition-all ${
-                        theme === 'black' 
-                          ? 'border-purple-500 bg-gradient-to-br from-purple-50 to-pink-50 shadow-md' 
-                          : 'border-gray-200 hover:border-gray-300 hover:shadow-sm'
-                      }`}
-                    >
-                      <div className="w-full h-12 bg-gray-900 rounded mb-2"></div>
-                      <span className="text-sm font-medium">블랙</span>
-                    </button>
-                    <button
-                      onClick={() => setTheme('silver')}
-                      className={`p-4 border-2 rounded-lg transition-all ${
-                        theme === 'silver' 
-                          ? 'border-purple-500 bg-gradient-to-br from-purple-50 to-pink-50 shadow-md' 
-                          : 'border-gray-200 hover:border-gray-300 hover:shadow-sm'
-                      }`}
-                    >
-                      <div className="w-full h-12 bg-gray-300 rounded mb-2"></div>
-                      <span className="text-sm font-medium">연한실버</span>
-                    </button>
-                  </div>
-                </div>
-
-                <button
-                  onClick={handleSaveSettings}
-                  className="flex items-center px-5 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all shadow-sm hover:shadow-md font-medium"
-                >
-                  <Save className="h-4 w-4 mr-1.5" />
-                  설정 저장
-                </button>
-              </div>
-            ) : activeTab === 'users' ? (
-              <div className="text-center py-12">
-                <UserPlus className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">회원가입 관리</h3>
-                <p className="text-gray-600">회원가입 관리 기능은 추후 구현 예정입니다.</p>
-              </div>
-            ) : null}
-          </div>
+                    <div className="border border-zinc-100 rounded-lg overflow-hidden">
+                       <table className="w-full text-sm text-left">
+                          <thead className="bg-zinc-50 border-b border-zinc-100 text-zinc-500 uppercase text-xs">
+                             <tr>
+                                {['Supplier', 'Model', 'Part No', 'Part Name', 'Action'].map(h => (
+                                   <th key={h} className="px-4 py-3 font-semibold">{h}</th>
+                                ))}
+                             </tr>
+                          </thead>
+                          <tbody className="divide-y divide-zinc-100">
+                             {masterData.map(row => (
+                                <tr key={row.id} className="hover:bg-zinc-50">
+                                   {editingRow === row.id ? (
+                                      <>
+                                         {['company', 'chajong', 'pumbeon', 'pm'].map(key => (
+                                            <td key={key} className="px-4 py-3">
+                                               <input 
+                                                  value={row[key as keyof MasterData]}
+                                                  aria-label={`Edit ${key}`}
+                                                  onChange={e => setMasterData(prev => prev.map(r => r.id === row.id ? { ...r, [key]: e.target.value } : r))}
+                                                  className="w-full px-2 py-1 border rounded"
+                                               />
+                                            </td>
+                                         ))}
+                                         <td className="px-4 py-3 flex gap-2">
+                                            <button onClick={() => handleUpdate(row)} className="text-blue-600 font-medium">Save</button>
+                                            <button onClick={() => { setEditingRow(null); loadData() }} className="text-zinc-500">Cancel</button>
+                                         </td>
+                                      </>
+                                   ) : (
+                                      <>
+                                         <td className="px-4 py-3">{row.company}</td>
+                                         <td className="px-4 py-3">{row.chajong}</td>
+                                         <td className="px-4 py-3 font-mono text-zinc-600">{row.pumbeon}</td>
+                                         <td className="px-4 py-3">{row.pm}</td>
+                                         <td className="px-4 py-3 flex gap-2">
+                                            <button onClick={() => setEditingRow(row.id)} className="text-zinc-400 hover:text-zinc-900" aria-label="Edit Item"><Edit className="w-4 h-4" /></button>
+                                            <button onClick={() => handleDelete(row)} className="text-zinc-400 hover:text-red-600" aria-label="Delete Item"><Trash2 className="w-4 h-4" /></button>
+                                         </td>
+                                      </>
+                                   )}
+                                </tr>
+                             ))}
+                          </tbody>
+                       </table>
+                    </div>
+                 </div>
+              ) : (
+                 <div className="p-8 max-w-lg">
+                    <h3 className="text-lg font-medium text-zinc-900 mb-6">User Preferences</h3>
+                    <div className="space-y-6">
+                       <div>
+                          <label className="block text-sm font-medium text-zinc-700 mb-2">Display Name</label>
+                          <input 
+                            type="text" 
+                            value={userName} 
+                            onChange={e => setUserName(e.target.value)}
+                            className="w-full px-3 py-2 border border-zinc-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-zinc-900" 
+                          />
+                          <p className="text-xs text-zinc-500 mt-1">This name will appear in edit history logs.</p>
+                       </div>
+                       <button 
+                          onClick={() => { localStorage.setItem('userName', userName); showToast('Saved', 'success') }}
+                          className="px-4 py-2 bg-zinc-900 text-white rounded-lg hover:bg-zinc-800 font-medium text-sm"
+                        >
+                          Save Changes
+                        </button>
+                    </div>
+                 </div>
+              )}
+           </div>
         </div>
       </div>
     </div>
   )
 }
-

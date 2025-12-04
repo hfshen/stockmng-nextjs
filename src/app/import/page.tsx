@@ -2,10 +2,11 @@
 
 import { useState } from 'react'
 import type { ChangeEvent } from 'react'
-import { Upload, FileSpreadsheet, CheckCircle, AlertCircle, Download } from 'lucide-react'
+import { Upload, FileSpreadsheet, CheckCircle, AlertCircle, Download, ArrowLeft } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import * as XLSX from 'xlsx'
 import { handleError } from '@/lib/utils'
+import Link from 'next/link'
 
 interface UploadResult {
   success: number
@@ -26,7 +27,6 @@ export default function Import() {
       setResult(null)
       setPreview([])
       
-      // 파일 미리보기
       const reader = new FileReader()
       reader.onload = (e) => {
         try {
@@ -35,8 +35,6 @@ export default function Import() {
           const sheetName = workbook.SheetNames[0]
           const worksheet = workbook.Sheets[sheetName]
           const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 })
-          
-          // 첫 5행만 미리보기
           setPreview(jsonData.slice(0, 5) as string[][])
         } catch (error) {
           handleError(error, '파일 읽기')
@@ -57,35 +55,22 @@ export default function Import() {
     const ws = XLSX.utils.aoa_to_sheet(templateData)
     const wb = XLSX.utils.book_new()
     XLSX.utils.book_append_sheet(wb, ws, '재고데이터')
-    
     XLSX.writeFile(wb, '재고데이터_템플릿.xlsx')
   }
 
   const handleUpload = async () => {
     if (!file) return
 
-    // 해당 월의 기존 데이터 삭제 확인
     const currentMonth = new Date().toISOString().slice(0, 7)
-    const confirmDelete = confirm(
-      `${currentMonth}월의 기존 데이터를 모두 삭제하고 새로 업로드하시겠습니까?`
-    )
-    
+    const confirmDelete = confirm(`${currentMonth}월의 기존 데이터를 모두 삭제하고 새로 업로드하시겠습니까?`)
     if (!confirmDelete) return
 
     setUploading(true)
     setResult(null)
 
     try {
-      // 해당 월의 기존 monthly_data 삭제
-      const { error: deleteError } = await supabase
-        .from('monthly_data')
-        .delete()
-        .eq('year_month', currentMonth)
-
-      if (deleteError) {
-        handleError(deleteError, '기존 데이터 삭제')
-        // 삭제 오류가 있어도 계속 진행
-      }
+      const { error: deleteError } = await supabase.from('monthly_data').delete().eq('year_month', currentMonth)
+      if (deleteError) handleError(deleteError, '기존 데이터 삭제')
 
       const reader = new FileReader()
       reader.onload = async (e) => {
@@ -103,14 +88,12 @@ export default function Import() {
           for (let i = 0; i < jsonData.length; i++) {
             const row = jsonData[i] as Record<string, string | number>
             try {
-              // 필수 필드 검증
               if (!row['업체명'] || !row['차종'] || !row['품번']) {
                 errors.push(`행 ${i + 2}: 필수 필드가 누락되었습니다 (업체명, 차종, 품번)`)
                 failedCount++
                 continue
               }
 
-              // 기존 레코드 확인
               const { data: existingOrder } = await supabase
                 .from('order_register')
                 .select('id')
@@ -123,16 +106,8 @@ export default function Import() {
 
               if (existingOrder) {
                 orderId = existingOrder.id
-                // 기존 레코드 업데이트 (기본 정보만 업데이트)
-                await supabase
-                  .from('order_register')
-                  .update({
-                    pm: String(row['품명'] || ''),
-                    remark: String(row['비고'] || '')
-                  })
-                  .eq('id', orderId)
+                await supabase.from('order_register').update({ pm: String(row['품명'] || ''), remark: String(row['비고'] || '') }).eq('id', orderId)
               } else {
-                // 새 레코드 생성
                 const { data: newOrder, error: insertError } = await supabase
                   .from('order_register')
                   .insert({
@@ -152,27 +127,18 @@ export default function Import() {
                 orderId = newOrder.id
               }
 
-              // 해당 월의 기존 monthly_data 삭제 (중복 방지)
-              await supabase
-                .from('monthly_data')
-                .delete()
-                .eq('year_month', currentMonth)
-                .eq('order_id', orderId)
+              await supabase.from('monthly_data').delete().eq('year_month', currentMonth).eq('order_id', orderId)
 
-              // 월별 데이터 삽입 (새로 생성)
-              const { error: monthlyError } = await supabase
-                .from('monthly_data')
-                .insert({
-                  year_month: currentMonth,
-                  order_id: orderId,
-                  in_qty: parseInt(String(row['입고수량'])) || 0,
-                  out_qty: parseInt(String(row['반출수량'])) || 0,
-                  stock_qty: (parseInt(String(row['입고수량'])) || 0) - (parseInt(String(row['반출수량'])) || 0),
-                  order_qty: parseInt(String(row['발주수량'])) || 0
-                })
+              const { error: monthlyError } = await supabase.from('monthly_data').insert({
+                year_month: currentMonth,
+                order_id: orderId,
+                in_qty: parseInt(String(row['입고수량'])) || 0,
+                out_qty: parseInt(String(row['반출수량'])) || 0,
+                stock_qty: (parseInt(String(row['입고수량'])) || 0) - (parseInt(String(row['반출수량'])) || 0),
+                order_qty: parseInt(String(row['발주수량'])) || 0
+              })
 
               if (monthlyError) throw monthlyError
-
               successCount++
             } catch (error) {
               errors.push(`행 ${i + 2}: ${(error as Error).message}`)
@@ -180,164 +146,138 @@ export default function Import() {
             }
           }
 
-          setResult({
-            success: successCount,
-            failed: failedCount,
-            errors
-          })
+          setResult({ success: successCount, failed: failedCount, errors })
         } catch (error) {
-          setResult({
-            success: 0,
-            failed: 1,
-            errors: [`파일 처리 오류: ${(error as Error).message}`]
-          })
+          setResult({ success: 0, failed: 1, errors: [`파일 처리 오류: ${(error as Error).message}`] })
         }
       }
       reader.readAsArrayBuffer(file)
     } catch (error) {
-      setResult({
-        success: 0,
-        failed: 1,
-        errors: [`업로드 오류: ${(error as Error).message}`]
-      })
+      setResult({ success: 0, failed: 1, errors: [`업로드 오류: ${(error as Error).message}`] })
     } finally {
       setUploading(false)
     }
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-purple-50/30">
-      <div className="max-w-4xl mx-auto px-6 lg:px-8 py-12">
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-100 p-8">
-          <div className="flex items-center mb-8">
-            <div className="p-2 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 mr-3">
-              <Upload className="h-5 w-5 text-white" />
-            </div>
-            <div>
-              <h2 className="text-2xl font-bold text-gray-900">데이터 가져오기</h2>
-              <p className="text-sm text-gray-500 mt-1">Excel 파일을 업로드하여 재고 데이터를 일괄 등록할 수 있습니다.</p>
-            </div>
-          </div>
-
-          {/* 템플릿 다운로드 */}
-          <div className="mb-6 p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border border-purple-100">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center">
-                <FileSpreadsheet className="h-5 w-5 text-purple-600 mr-2" />
-                <span className="text-purple-800 font-medium">Excel 템플릿 다운로드</span>
-              </div>
-              <button
+    <div className="min-h-screen bg-zinc-50">
+      <div className="max-w-4xl mx-auto px-6 py-12">
+        {/* Header */}
+        <div className="mb-8">
+          <Link href="/inventory" className="inline-flex items-center text-sm text-zinc-500 hover:text-zinc-900 mb-4 transition-colors">
+            <ArrowLeft className="w-4 h-4 mr-1" />
+            Back to Inventory
+          </Link>
+          <div className="flex justify-between items-end">
+             <div>
+                <h1 className="text-3xl font-bold text-zinc-900 tracking-tight">Import Data</h1>
+                <p className="text-zinc-500 mt-2">Bulk upload inventory data using Excel files.</p>
+             </div>
+             <button
                 onClick={downloadTemplate}
-                className="flex items-center px-5 py-2.5 bg-white text-gray-700 rounded-lg border border-gray-200 hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm hover:shadow-md font-medium"
+                className="flex items-center px-4 py-2 bg-white text-zinc-700 rounded-lg border border-zinc-200 hover:bg-zinc-50 text-sm font-medium transition-all"
               >
-                <Download className="h-4 w-4 mr-1.5" />
-                템플릿 다운로드
+                <Download className="h-4 w-4 mr-2" />
+                Download Template
               </button>
-            </div>
           </div>
+        </div>
 
-          {/* 파일 업로드 */}
-          <div className="mb-6">
-            <label htmlFor="file-upload" className="block text-sm font-medium text-gray-700 mb-2">
-              Excel 파일 선택
-            </label>
-            <input
-              id="file-upload"
-              type="file"
-              accept=".xlsx,.xls"
-              onChange={handleFileChange}
-              aria-label="Excel 파일 선택"
-              className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-medium file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-            />
-          </div>
-
-          {/* 파일 미리보기 */}
-          {preview.length > 0 && (
-            <div className="mb-6">
-              <h3 className="text-sm font-medium text-gray-700 mb-2">파일 미리보기 (첫 5행)</h3>
-              <div className="overflow-x-auto">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      {preview[0]?.map((header: string | number, index: number) => (
-                        <th key={index} className="px-3 py-2 text-left text-xs font-medium text-gray-500 uppercase">
-                          {header}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody className="bg-white divide-y divide-gray-200">
-                    {preview.slice(1).map((row: (string | number)[], rowIndex: number) => (
-                      <tr key={rowIndex}>
-                        {row.map((cell: string | number, cellIndex: number) => (
-                          <td key={cellIndex} className="px-3 py-2 text-sm text-gray-900">
-                            {cell}
-                          </td>
-                        ))}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+        <div className="grid grid-cols-1 gap-6">
+           {/* Upload Zone */}
+           <div className="bg-white rounded-xl border border-zinc-200 p-8 shadow-sm">
+              <div className="border-2 border-dashed border-zinc-200 rounded-xl p-10 flex flex-col items-center justify-center text-center hover:border-zinc-400 transition-colors bg-zinc-50/50">
+                 <div className="p-4 bg-zinc-100 rounded-full mb-4">
+                    <Upload className="w-8 h-8 text-zinc-400" />
+                 </div>
+                 <label htmlFor="file-upload" className="cursor-pointer">
+                    <span className="text-zinc-900 font-semibold hover:underline">Click to upload</span>
+                    <span className="text-zinc-500"> or drag and drop</span>
+                    <input
+                      id="file-upload"
+                      type="file"
+                      accept=".xlsx,.xls"
+                      onChange={handleFileChange}
+                      className="hidden"
+                    />
+                 </label>
+                 <p className="text-xs text-zinc-400 mt-2">XLSX or XLS files only</p>
               </div>
-            </div>
-          )}
 
-          {/* 업로드 버튼 */}
-          <div className="mb-6">
-            <button
-              onClick={handleUpload}
-              disabled={!file || uploading}
-              className="w-full flex items-center justify-center px-5 py-2.5 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg hover:from-green-700 hover:to-green-800 transition-all shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed font-medium"
-            >
-              {uploading ? (
-                <>
-                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                  업로드 중...
-                </>
-              ) : (
-                <>
-                  <Upload className="h-4 w-4 mr-2" />
-                  데이터 업로드
-                </>
+              {file && (
+                 <div className="mt-6 p-4 bg-zinc-50 rounded-lg border border-zinc-100 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                       <FileSpreadsheet className="w-8 h-8 text-green-600" />
+                       <div>
+                          <p className="text-sm font-medium text-zinc-900">{file.name}</p>
+                          <p className="text-xs text-zinc-500">{(file.size / 1024).toFixed(1)} KB</p>
+                       </div>
+                    </div>
+                    <button
+                      onClick={handleUpload}
+                      disabled={uploading}
+                      className="px-4 py-2 bg-zinc-900 text-white rounded-lg hover:bg-zinc-800 disabled:opacity-50 text-sm font-medium transition-all"
+                    >
+                      {uploading ? 'Uploading...' : 'Start Import'}
+                    </button>
+                 </div>
               )}
-            </button>
-          </div>
+           </div>
 
-          {/* 결과 표시 */}
-          {result && (
-            <div className={`p-4 rounded-lg ${
-              result.failed === 0 ? 'bg-green-50 border border-green-200' : 'bg-yellow-50 border border-yellow-200'
-            }`}>
-              <div className="flex items-center mb-2">
-                {result.failed === 0 ? (
-                  <CheckCircle className="h-5 w-5 text-green-600 mr-2" />
-                ) : (
-                  <AlertCircle className="h-5 w-5 text-yellow-600 mr-2" />
-                )}
-                <h3 className="text-lg font-semibold text-gray-900">
-                  업로드 완료
-                </h3>
-              </div>
-              <div className="text-sm text-gray-700">
-                <p>성공: {result.success}개</p>
-                <p>실패: {result.failed}개</p>
-              </div>
-              
-              {result.errors.length > 0 && (
-                <div className="mt-4">
-                  <h4 className="text-sm font-medium text-gray-900 mb-2">오류 목록:</h4>
-                  <ul className="text-sm text-gray-700 space-y-1">
-                    {result.errors.map((error, index) => (
-                      <li key={index} className="flex items-start">
-                        <span className="text-red-500 mr-2">•</span>
-                        {error}
-                      </li>
-                    ))}
-                  </ul>
+           {/* Preview Section */}
+           {preview.length > 0 && (
+             <div className="bg-white rounded-xl border border-zinc-200 overflow-hidden shadow-sm">
+                <div className="px-6 py-4 border-b border-zinc-100 bg-zinc-50/50">
+                   <h3 className="font-semibold text-zinc-900">File Preview (First 5 rows)</h3>
                 </div>
-              )}
-            </div>
-          )}
+                <div className="overflow-x-auto">
+                   <table className="w-full text-sm text-left">
+                      <thead className="text-xs text-zinc-500 uppercase bg-zinc-50 border-b border-zinc-100">
+                         <tr>
+                            {preview[0]?.map((header: any, i: number) => (
+                               <th key={i} className="px-6 py-3 font-medium">{header}</th>
+                            ))}
+                         </tr>
+                      </thead>
+                      <tbody className="divide-y divide-zinc-100">
+                         {preview.slice(1).map((row, i) => (
+                            <tr key={i} className="hover:bg-zinc-50">
+                               {row.map((cell: any, j: number) => (
+                                  <td key={j} className="px-6 py-3 text-zinc-700">{cell}</td>
+                               ))}
+                            </tr>
+                         ))}
+                      </tbody>
+                   </table>
+                </div>
+             </div>
+           )}
+
+           {/* Results Section */}
+           {result && (
+              <div className={`rounded-xl border p-6 ${result.failed === 0 ? 'bg-green-50 border-green-200' : 'bg-amber-50 border-amber-200'}`}>
+                 <div className="flex items-start gap-4">
+                    {result.failed === 0 ? <CheckCircle className="w-6 h-6 text-green-600" /> : <AlertCircle className="w-6 h-6 text-amber-600" />}
+                    <div>
+                       <h3 className={`font-semibold ${result.failed === 0 ? 'text-green-900' : 'text-amber-900'}`}>
+                          Import Complete
+                       </h3>
+                       <p className={`text-sm mt-1 ${result.failed === 0 ? 'text-green-700' : 'text-amber-700'}`}>
+                          Successfully imported {result.success} items. {result.failed > 0 && `Failed to import ${result.failed} items.`}
+                       </p>
+                       {result.errors.length > 0 && (
+                          <div className="mt-4 p-4 bg-white/50 rounded-lg">
+                             <ul className="text-sm space-y-1 text-red-600 list-disc list-inside">
+                                {result.errors.map((err, i) => (
+                                   <li key={i}>{err}</li>
+                                ))}
+                             </ul>
+                          </div>
+                       )}
+                    </div>
+                 </div>
+              </div>
+           )}
         </div>
       </div>
     </div>

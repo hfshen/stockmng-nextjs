@@ -1,9 +1,10 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { AlertTriangle, Bell, CheckCircle, XCircle, Package, Edit } from 'lucide-react'
+import { AlertTriangle, Bell, CheckCircle, XCircle, Package, Edit, ArrowLeft, RefreshCw, Trash2 } from 'lucide-react'
 import { supabase, InventoryItem, EditHistory } from '@/lib/supabase'
 import { handleError } from '@/lib/utils'
+import Link from 'next/link'
 
 interface Alert {
   id: string
@@ -25,69 +26,29 @@ export default function Alerts() {
   const loadAlerts = async () => {
     try {
       setLoading(true)
-      
-      // 재고 데이터 조회
-      const { data: orderData, error: orderError } = await supabase
-        .from('order_register')
-        .select('*')
-
+      const { data: orderData, error: orderError } = await supabase.from('order_register').select('*')
       if (orderError) throw orderError
 
-      // 월별 데이터 조회
       const currentMonth = new Date().toISOString().slice(0, 7)
-      const { data: monthlyData, error: monthlyError } = await supabase
-        .from('monthly_data')
-        .select('*')
-        .eq('year_month', currentMonth)
-
+      const { data: monthlyData, error: monthlyError } = await supabase.from('monthly_data').select('*').eq('year_month', currentMonth)
       if (monthlyError) throw monthlyError
 
-      // 수정 이력 조회 (최근 24시간)
       const oneDayAgo = new Date()
       oneDayAgo.setHours(oneDayAgo.getHours() - 24)
-      
-      const { data: editHistoryData, error: editHistoryError } = await supabase
-        .from('edit_history')
-        .select('*')
-        .gte('created_at', oneDayAgo.toISOString())
-        .order('created_at', { ascending: false })
-
-      if (editHistoryError) {
-        handleError(editHistoryError, '수정 이력 조회')
-      }
+      const { data: editHistoryData } = await supabase.from('edit_history').select('*').gte('created_at', oneDayAgo.toISOString()).order('created_at', { ascending: false })
 
       const newAlerts: Alert[] = []
 
-      // 수정 이력 알림 추가
-      if (editHistoryData && editHistoryData.length > 0) {
+      // History Alerts
+      if (editHistoryData) {
         for (const history of editHistoryData) {
           const order = orderData?.find(o => o.id === history.order_id)
           if (order) {
-            const monthly = monthlyData?.find(m => m.order_id === order.id)
-            const stock = monthly?.stock_qty ?? (order.in_qty - order.out_qty)
-            const order_qty = monthly?.order_qty ?? order.order_qty
-            const in_qty = monthly?.in_qty ?? order.in_qty
-
-            const item: InventoryItem = {
-              id: order.id,
-              company: order.company,
-              chajong: order.chajong,
-              pumbeon: order.pumbeon,
-              pm: order.pm,
-              in_qty,
-              stock_qty: stock,
-              in_shortage: stock <= 0 ? '0' : (order_qty - in_qty).toString(),
-              order_qty,
-              out_qty: monthly?.out_qty ?? order.out_qty,
-              remark: order.remark
-            }
-
             newAlerts.push({
               id: `edit_history_${history.id}`,
               type: 'edit_history',
-              title: '재고 정보 수정',
-              message: `${order.company} - ${order.pumbeon}의 정보가 수정되었습니다.`,
-              item,
+              title: 'Stock Updated',
+              message: `${order.company} - ${order.pumbeon} information updated.`,
               priority: 'low',
               createdAt: history.created_at,
               editHistory: history
@@ -96,57 +57,30 @@ export default function Alerts() {
         }
       }
 
+      // Stock Alerts
       orderData?.forEach(order => {
         const monthly = monthlyData?.find(m => m.order_id === order.id)
         const stock = monthly?.stock_qty ?? (order.in_qty - order.out_qty)
         const order_qty = monthly?.order_qty ?? order.order_qty
-        const in_qty = monthly?.in_qty ?? order.in_qty
+        
+        const item = { ...order, stock_qty: stock, order_qty }
 
-        const item: InventoryItem = {
-          id: order.id,
-          company: order.company,
-          chajong: order.chajong,
-          pumbeon: order.pumbeon,
-          pm: order.pm,
-          in_qty,
-          stock_qty: stock,
-          in_shortage: stock <= 0 ? '0' : (order_qty - in_qty).toString(),
-          order_qty,
-          out_qty: monthly?.out_qty ?? order.out_qty,
-          remark: order.remark
-        }
-
-        // 재고 없음 알림
         if (stock <= 0) {
           newAlerts.push({
             id: `out_of_stock_${order.id}`,
             type: 'out_of_stock',
-            title: '재고 없음',
-            message: `${order.company} - ${order.pumbeon}의 재고가 없습니다.`,
+            title: 'Out of Stock',
+            message: `${order.company} - ${order.pumbeon} is currently out of stock.`,
             item,
             priority: 'high',
             createdAt: new Date().toISOString()
           })
-        }
-        // 부족 재고 알림
-        else if (stock <= 10) {
+        } else if (stock <= 10) {
           newAlerts.push({
             id: `low_stock_${order.id}`,
             type: 'low_stock',
-            title: '부족 재고',
-            message: `${order.company} - ${order.pumbeon}의 재고가 ${stock}개로 부족합니다.`,
-            item,
-            priority: 'medium',
-            createdAt: new Date().toISOString()
-          })
-        }
-        // 높은 수요 알림 (발주량 대비 재고가 20% 미만)
-        else if (order_qty > 0 && (stock / order_qty) < 0.2) {
-          newAlerts.push({
-            id: `high_demand_${order.id}`,
-            type: 'high_demand',
-            title: '높은 수요',
-            message: `${order.company} - ${order.pumbeon}의 수요가 높습니다. (재고: ${stock}/${order_qty})`,
+            title: 'Low Stock Warning',
+            message: `${order.company} - ${order.pumbeon} has low stock (${stock}).`,
             item,
             priority: 'medium',
             createdAt: new Date().toISOString()
@@ -154,7 +88,6 @@ export default function Alerts() {
         }
       })
 
-      // 우선순위별 정렬 (high -> medium -> low)
       newAlerts.sort((a, b) => {
         const priorityOrder = { high: 3, medium: 2, low: 1 }
         return priorityOrder[b.priority] - priorityOrder[a.priority]
@@ -170,279 +103,116 @@ export default function Alerts() {
 
   const dismissAlert = (alertId: string) => {
     setDismissedAlerts(prev => new Set([...prev, alertId]))
-    setSelectedAlerts(prev => {
-      const newSet = new Set(prev)
-      newSet.delete(alertId)
-      return newSet
-    })
+    setSelectedAlerts(prev => { const newSet = new Set(prev); newSet.delete(alertId); return newSet })
   }
 
   const toggleSelectAlert = (alertId: string) => {
     setSelectedAlerts(prev => {
       const newSet = new Set(prev)
-      if (newSet.has(alertId)) {
-        newSet.delete(alertId)
-      } else {
-        newSet.add(alertId)
-      }
+      if (newSet.has(alertId)) newSet.delete(alertId)
+      else newSet.add(alertId)
       return newSet
     })
   }
 
-  const selectAllAlerts = () => {
-    if (selectedAlerts.size === activeAlerts.length) {
-      setSelectedAlerts(new Set())
-    } else {
-      setSelectedAlerts(new Set(activeAlerts.map(alert => alert.id)))
-    }
-  }
-
-  const deleteSelectedAlerts = () => {
-    if (selectedAlerts.size === 0) return
-    if (confirm(`선택한 ${selectedAlerts.size}개의 알림을 삭제하시겠습니까?`)) {
-      setDismissedAlerts(prev => new Set([...prev, ...selectedAlerts]))
-      setSelectedAlerts(new Set())
-    }
-  }
-
-  const deleteAllAlerts = () => {
-    if (activeAlerts.length === 0) return
-    if (confirm(`모든 알림(${activeAlerts.length}개)을 삭제하시겠습니까?`)) {
-      setDismissedAlerts(new Set(activeAlerts.map(alert => alert.id)))
-      setSelectedAlerts(new Set())
-    }
-  }
-
-  const getAlertIcon = (type: Alert['type']) => {
-    switch (type) {
-      case 'out_of_stock':
-        return <XCircle className="h-5 w-5 text-red-500" />
-      case 'low_stock':
-        return <AlertTriangle className="h-5 w-5 text-yellow-500" />
-      case 'high_demand':
-        return <Bell className="h-5 w-5 text-blue-500" />
-      case 'expiring_soon':
-        return <Package className="h-5 w-5 text-orange-500" />
-      case 'edit_history':
-        return <Edit className="h-5 w-5 text-purple-500" />
-      default:
-        return <Bell className="h-5 w-5 text-gray-500" />
-    }
-  }
-
-  const getAlertColor = (priority: Alert['priority']) => {
-    switch (priority) {
-      case 'high':
-        return 'border-red-200 bg-red-50'
-      case 'medium':
-        return 'border-yellow-200 bg-yellow-50'
-      case 'low':
-        return 'border-blue-200 bg-blue-50'
-      default:
-        return 'border-gray-200 bg-gray-50'
-    }
-  }
-
-  useEffect(() => {
-    loadAlerts()
-  }, [])
+  useEffect(() => { loadAlerts() }, [])
 
   const activeAlerts = alerts.filter(alert => !dismissedAlerts.has(alert.id))
+  
+  const getPriorityStyles = (priority: Alert['priority']) => {
+    switch (priority) {
+      case 'high': return 'bg-red-50 border-red-100 text-red-900'
+      case 'medium': return 'bg-amber-50 border-amber-100 text-amber-900'
+      case 'low': return 'bg-zinc-50 border-zinc-100 text-zinc-900'
+      default: return 'bg-zinc-50 border-zinc-100'
+    }
+  }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-purple-50/30">
-      <div className="max-w-7xl mx-auto px-6 lg:px-8 py-12">
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-100 p-8 mb-8">
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
-            <div className="flex items-center">
-              <div className="p-2 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 mr-3">
-                <Bell className="h-5 w-5 text-white" />
-              </div>
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">알림 센터</h1>
-                <p className="text-sm text-gray-500 mt-1">
-                  총 {activeAlerts.length}개의 알림
-                  {selectedAlerts.size > 0 && ` (${selectedAlerts.size}개 선택됨)`}
-                </p>
-              </div>
-            </div>
-            <div className="flex items-center space-x-3">
-              {selectedAlerts.size > 0 && (
-                <button
-                  onClick={deleteSelectedAlerts}
-                  className="px-5 py-2.5 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-lg hover:from-red-700 hover:to-red-800 transition-all shadow-sm hover:shadow-md font-medium"
-                >
-                  선택 삭제
-                </button>
-              )}
-              {activeAlerts.length > 0 && (
-                <button
-                  onClick={deleteAllAlerts}
-                  className="px-5 py-2.5 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-lg hover:from-red-700 hover:to-red-800 transition-all shadow-sm hover:shadow-md font-medium"
-                >
-                  일괄 삭제
-                </button>
-              )}
-              <button
+    <div className="min-h-screen bg-zinc-50">
+      <div className="max-w-5xl mx-auto px-6 py-12">
+        <div className="mb-8">
+          <Link href="/inventory" className="inline-flex items-center text-sm text-zinc-500 hover:text-zinc-900 mb-4 transition-colors">
+            <ArrowLeft className="w-4 h-4 mr-1" />
+            Back to Inventory
+          </Link>
+          <div className="flex justify-between items-end">
+             <div>
+                <h1 className="text-3xl font-bold text-zinc-900 tracking-tight">Alerts & Notifications</h1>
+                <p className="text-zinc-500 mt-2">Manage stock alerts and system notifications.</p>
+             </div>
+             <div className="flex gap-2">
+               {selectedAlerts.size > 0 && (
+                 <button 
+                  onClick={() => {
+                     setDismissedAlerts(prev => new Set([...prev, ...selectedAlerts]));
+                     setSelectedAlerts(new Set());
+                  }}
+                  className="flex items-center px-3 py-2 bg-white border border-zinc-200 text-red-600 rounded-lg text-sm font-medium hover:bg-red-50 transition-colors"
+                 >
+                   <Trash2 className="w-4 h-4 mr-2" />
+                   Dismiss Selected
+                 </button>
+               )}
+               <button 
                 onClick={loadAlerts}
-                className="px-5 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all shadow-sm hover:shadow-md font-medium"
-              >
-                새로고침
-              </button>
-            </div>
+                className="flex items-center px-3 py-2 bg-white border border-zinc-200 text-zinc-700 rounded-lg text-sm font-medium hover:bg-zinc-50 transition-colors"
+               >
+                 <RefreshCw className="w-4 h-4 mr-2" />
+                 Refresh
+               </button>
+             </div>
           </div>
         </div>
+
         {loading ? (
-          <div className="text-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-            <p className="mt-4 text-gray-600">알림을 불러오는 중...</p>
-          </div>
+           <div className="py-12 text-center text-zinc-500">Loading alerts...</div>
         ) : activeAlerts.length === 0 ? (
-          <div className="text-center py-12">
-            <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">알림이 없습니다</h3>
-            <p className="text-gray-600">현재 모든 재고가 정상 상태입니다.</p>
-          </div>
+           <div className="bg-white rounded-xl border border-zinc-200 p-12 text-center">
+              <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-zinc-900">All Good!</h3>
+              <p className="text-zinc-500">No pending alerts at the moment.</p>
+           </div>
         ) : (
           <div className="space-y-4">
-            <div className="flex items-center justify-between mb-4">
-              <label className="flex items-center space-x-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={selectedAlerts.size === activeAlerts.length && activeAlerts.length > 0}
-                  onChange={selectAllAlerts}
-                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                />
-                <span className="text-sm text-gray-700">전체 선택</span>
-              </label>
-            </div>
             {activeAlerts.map((alert) => (
-              <div
-                key={alert.id}
-                className={`border rounded-lg p-6 ${getAlertColor(alert.priority)} ${
-                  selectedAlerts.has(alert.id) ? 'ring-2 ring-blue-500' : ''
-                }`}
+              <div 
+                key={alert.id} 
+                className={`relative group rounded-xl border p-5 transition-all ${getPriorityStyles(alert.priority)} ${selectedAlerts.has(alert.id) ? 'ring-2 ring-zinc-400' : ''}`}
               >
-                <div className="flex items-start justify-between">
-                  <div className="flex items-start space-x-3 flex-1">
-                    <input
-                      type="checkbox"
+                <div className="flex items-start gap-4">
+                  <div className="pt-1">
+                    <input 
+                      type="checkbox" 
                       checked={selectedAlerts.has(alert.id)}
                       onChange={() => toggleSelectAlert(alert.id)}
-                      onClick={(e) => e.stopPropagation()}
-                      aria-label={`${alert.title} 선택`}
-                      className="mt-1 w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                      className="w-4 h-4 rounded border-zinc-300 text-zinc-900 focus:ring-zinc-900" 
                     />
-                    {getAlertIcon(alert.type)}
-                    <div className="flex-1">
-                      <div className="flex items-center space-x-2">
-                        <h3 className="text-lg font-semibold text-gray-900">
-                          {alert.title}
-                        </h3>
-                        <span className={`px-2 py-1 text-xs font-medium rounded-full ${
-                          alert.priority === 'high' ? 'bg-red-100 text-red-800' :
-                          alert.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' :
-                          'bg-blue-100 text-blue-800'
-                        }`}>
-                          {alert.priority === 'high' ? '긴급' :
-                           alert.priority === 'medium' ? '보통' : '낮음'}
-                        </span>
-                      </div>
-                      <p className="text-gray-700 mt-1">{alert.message}</p>
-                      
-                      {/* 수정 이력 정보 */}
-                      {alert.type === 'edit_history' && alert.editHistory && (
-                        <div className="mt-4 bg-purple-50 rounded-lg p-4 border border-purple-200">
-                          <h4 className="font-semibold text-purple-900 mb-2">수정 내역</h4>
-                          <div className="space-y-2 text-sm">
-                            <div>
-                              <span className="font-medium text-purple-700">수정자:</span>
-                              <span className="ml-2 text-purple-900">{alert.editHistory.user_name}</span>
-                            </div>
-                            <div>
-                              <span className="font-medium text-purple-700">수정 시간:</span>
-                              <span className="ml-2 text-purple-900">
-                                {new Date(alert.editHistory.created_at).toLocaleString('ko-KR')}
-                              </span>
-                            </div>
-                            <div>
-                              <span className="font-medium text-purple-700">변경 내용:</span>
-                              <div className="mt-1 space-y-1">
-                                {alert.editHistory.changed_fields.map((field, index) => (
-                                  <div key={index} className="bg-white rounded p-2 border border-purple-100">
-                                    <span className="font-medium text-purple-800">{field.field}:</span>
-                                    <span className="ml-2 text-gray-700 line-through">{field.old_value}</span>
-                                    <span className="mx-2 text-purple-600">→</span>
-                                    <span className="text-gray-900 font-medium">{field.new_value}</span>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-                      
-                      {/* 아이템 상세 정보 */}
-                      {alert.item && (
-                        <div className="mt-4 bg-white rounded-lg p-4 border">
-                          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                            <div>
-                              <span className="font-medium text-gray-500">업체:</span>
-                              <p className="text-gray-900">{alert.item.company}</p>
-                            </div>
-                            <div>
-                              <span className="font-medium text-gray-500">차종:</span>
-                              <p className="text-gray-900">{alert.item.chajong}</p>
-                            </div>
-                            <div>
-                              <span className="font-medium text-gray-500">품번:</span>
-                              <p className="text-gray-900">{alert.item.pumbeon}</p>
-                            </div>
-                            <div>
-                              <span className="font-medium text-gray-500">현재 재고:</span>
-                              <p className="text-gray-900">{alert.item.stock_qty}</p>
-                            </div>
-                            <div>
-                              <span className="font-medium text-gray-500">발주량:</span>
-                              <p className="text-gray-900">{alert.item.order_qty}</p>
-                            </div>
-                            <div>
-                              <span className="font-medium text-gray-500">입고량:</span>
-                              <p className="text-gray-900">{alert.item.in_qty}</p>
-                            </div>
-                            <div>
-                              <span className="font-medium text-gray-500">반출량:</span>
-                              <p className="text-gray-900">{alert.item.out_qty}</p>
-                            </div>
-                            <div>
-                              <span className="font-medium text-gray-500">미입고/과입고:</span>
-                              <p className={`font-medium ${
-                                alert.item.in_shortage.startsWith('+') ? 'text-green-600' :
-                                alert.item.in_shortage.startsWith('-') ? 'text-red-600' :
-                                'text-gray-600'
-                              }`}>
-                                {alert.item.in_shortage}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      )}
+                  </div>
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      {alert.priority === 'high' && <XCircle className="w-4 h-4 text-red-600" />}
+                      {alert.priority === 'medium' && <AlertTriangle className="w-4 h-4 text-amber-600" />}
+                      <h3 className="font-semibold">{alert.title}</h3>
+                      <span className="text-xs opacity-70 ml-auto">{new Date(alert.createdAt).toLocaleString()}</span>
                     </div>
+                    <p className="text-sm opacity-90">{alert.message}</p>
+                    
+                    {alert.type === 'edit_history' && alert.editHistory && (
+                      <div className="mt-3 text-xs bg-white/50 p-2 rounded border border-black/5">
+                        <span className="font-medium">{alert.editHistory.user_name}</span> changed:
+                        {alert.editHistory.changed_fields.map((f, i) => (
+                           <span key={i} className="ml-1">{f.field} ({f.old_value} → {f.new_value})</span>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                  
-                  <div className="flex items-center space-x-2">
-                    <span className="text-xs text-gray-500">
-                      {new Date(alert.createdAt).toLocaleString()}
-                    </span>
-                    <button
-                      onClick={() => dismissAlert(alert.id)}
-                      aria-label="알림 삭제"
-                      title="알림 삭제"
-                      className="text-gray-400 hover:text-gray-600 transition-colors"
-                    >
-                      <XCircle className="h-5 w-5" />
-                    </button>
-                  </div>
+                  <button 
+                    onClick={() => dismissAlert(alert.id)}
+                    className="opacity-0 group-hover:opacity-100 p-1 hover:bg-black/5 rounded transition-all"
+                  >
+                    <XCircle className="w-5 h-5 opacity-50" />
+                  </button>
                 </div>
               </div>
             ))}

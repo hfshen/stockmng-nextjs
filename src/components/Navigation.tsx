@@ -34,33 +34,33 @@ export default function Navigation() {
   }
 
   return (
-    <nav className="bg-white/80 backdrop-blur-sm border-b border-gray-100 sticky top-0 z-50">
+    <nav className="bg-white/80 backdrop-blur-md border-b border-zinc-200 sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-6 lg:px-8">
-        <div className="flex justify-between h-16">
+        <div className="flex justify-between h-14">
           <div className="flex items-center">
-            <Link href="/" className="flex items-center group">
-              <div className="p-1.5 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 group-hover:scale-105 transition-transform">
-                <Warehouse className="h-5 w-5 text-white" />
+            <Link href="/inventory" className="flex items-center group gap-2">
+              <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-zinc-900 text-white group-hover:bg-zinc-800 transition-colors">
+                <Warehouse className="h-4 w-4" />
               </div>
-              <span className="ml-3 text-lg font-semibold text-gray-900">입고관리</span>
+              <span className="text-sm font-semibold tracking-tight text-zinc-900">StockMng</span>
             </Link>
           </div>
           
           {/* 데스크톱 메뉴 */}
-          <div className="hidden md:flex items-center space-x-2">
+          <div className="hidden md:flex items-center space-x-1">
             {navigation.map((item) => {
               const isActive = pathname === item.href
               return (
                 <Link
                   key={item.name}
                   href={item.href}
-                  className={`flex items-center px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                  className={`flex items-center px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200 ${
                     isActive
-                      ? 'bg-gradient-to-r from-purple-50 to-pink-50 text-purple-700'
-                      : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                      ? 'bg-zinc-100 text-zinc-900'
+                      : 'text-zinc-500 hover:text-zinc-900 hover:bg-zinc-50'
                   }`}
                 >
-                  <item.icon className={`h-4 w-4 ${isActive ? 'mr-2' : 'mr-2'}`} />
+                  <item.icon className={`h-4 w-4 ${isActive ? 'text-zinc-900' : 'text-zinc-400 group-hover:text-zinc-900'} mr-2`} />
                   {item.name}
                 </Link>
               )
@@ -71,12 +71,12 @@ export default function Navigation() {
           <div className="md:hidden flex items-center">
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="p-2 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-50 transition-colors"
+              className="p-2 rounded-md text-zinc-500 hover:text-zinc-900 hover:bg-zinc-50 transition-colors"
             >
               {isMobileMenuOpen ? (
-                <X className="h-6 w-6" />
+                <X className="h-5 w-5" />
               ) : (
-                <Menu className="h-6 w-6" />
+                <Menu className="h-5 w-5" />
               )}
             </button>
           </div>
@@ -84,7 +84,7 @@ export default function Navigation() {
 
         {/* 모바일 메뉴 */}
         {isMobileMenuOpen && (
-          <div className="md:hidden border-t border-gray-100">
+          <div className="md:hidden border-t border-zinc-100">
             <div className="px-2 pt-2 pb-4 space-y-1">
               {navigation.map((item) => {
                 const isActive = pathname === item.href
@@ -93,13 +93,13 @@ export default function Navigation() {
                     key={item.name}
                     href={item.href}
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className={`flex items-center px-4 py-3 rounded-lg text-base font-medium transition-all ${
+                    className={`flex items-center px-4 py-3 rounded-md text-sm font-medium transition-all ${
                       isActive
-                        ? 'bg-gradient-to-r from-purple-50 to-pink-50 text-purple-700'
-                        : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                        ? 'bg-zinc-100 text-zinc-900'
+                        : 'text-zinc-500 hover:text-zinc-900 hover:bg-zinc-50'
                     }`}
                   >
-                    <item.icon className="h-5 w-5 mr-3" />
+                    <item.icon className="h-4 w-4 mr-3" />
                     {item.name}
                   </Link>
                 )

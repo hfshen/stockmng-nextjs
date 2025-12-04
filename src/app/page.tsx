@@ -1,129 +1,197 @@
-'use client'
+'use client';
 
-import { useRouter } from 'next/navigation'
-import { Warehouse, BarChart3, Bell, Plus, Upload, Settings, ArrowRight, Check, Sparkles } from 'lucide-react'
+import { motion } from 'framer-motion';
+import Link from 'next/link';
+import { ArrowRight, CheckCircle2, Command, Zap, Shield } from 'lucide-react';
 
 export default function LandingPage() {
-  const router = useRouter()
-
-  const features = [
-    {
-      icon: Warehouse,
-      title: '재고 현황',
-      description: '실시간 재고 현황을 한눈에 확인하고 관리하세요'
-    },
-    {
-      icon: BarChart3,
-      title: '대시보드',
-      description: '데이터 시각화로 재고 트렌드를 분석하세요'
-    },
-    {
-      icon: Bell,
-      title: '알림 센터',
-      description: '재고 부족 및 중요 알림을 실시간으로 받아보세요'
-    },
-    {
-      icon: Plus,
-      title: '입고등록',
-      description: '간편한 입고 등록으로 재고를 업데이트하세요'
-    },
-    {
-      icon: Upload,
-      title: '데이터 가져오기',
-      description: 'Excel 파일로 대량 데이터를 한번에 등록하세요'
-    },
-    {
-      icon: Settings,
-      title: '관리자 설정',
-      description: '마스터 데이터 및 시스템 설정을 관리하세요'
-    }
-  ]
-
-  const techStack = [
-    { name: 'Next.js 15', color: 'from-gray-800 to-gray-900' },
-    { name: 'React 19', color: 'from-blue-500 to-blue-600' },
-    { name: 'TypeScript', color: 'from-blue-600 to-blue-700' },
-    { name: 'Tailwind CSS', color: 'from-cyan-500 to-blue-500' },
-    { name: 'Supabase', color: 'from-green-500 to-emerald-600' },
-    { name: 'Recharts', color: 'from-purple-500 to-pink-500' }
-  ]
-
   return (
-    <div className="h-screen bg-gradient-to-br from-purple-50 via-white to-pink-50 flex items-center justify-center p-6 overflow-hidden">
-      <div className="max-w-6xl w-full h-full flex flex-col justify-center">
-        {/* 헤로 섹션 */}
-        <div className="text-center mb-12">
-          <div className="inline-flex items-center justify-center mb-6">
-            <div className="p-3 rounded-2xl bg-gradient-to-br from-purple-500 to-pink-500 shadow-lg">
-              <Warehouse className="h-10 w-10 text-white" />
-            </div>
-          </div>
-          <h1 className="text-4xl md:text-5xl font-bold text-gray-900 mb-4">
-            <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-              입고관리 시스템
-            </span>
-          </h1>
-          <p className="text-lg text-gray-600 mb-6 max-w-2xl mx-auto">
-            실시간 재고 관리와 데이터 분석을 통해 효율적인 물류 관리를 경험하세요
-          </p>
-          <button
-            onClick={() => router.push('/inventory')}
-            className="inline-flex items-center px-8 py-3.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl hover:from-purple-700 hover:to-pink-700 transition-all shadow-lg hover:shadow-xl text-base font-semibold group mb-8"
+    <div className="min-h-screen bg-white text-zinc-900 selection:bg-zinc-900 selection:text-white overflow-hidden flex flex-col">
+      
+      {/* Navbar Placeholder (Matches global nav height) */}
+      <div className="h-14"></div>
+
+      <main className="flex-1 flex flex-col md:flex-row max-w-7xl mx-auto w-full px-6 lg:px-8 pt-12 md:pt-0">
+        
+        {/* Left Content */}
+        <div className="flex-1 flex flex-col justify-center items-start z-10 md:pr-12">
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-zinc-100 border border-zinc-200 text-xs font-medium text-zinc-600 mb-6"
           >
-            시작하기
-            <ArrowRight className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-          </button>
-        </div>
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-zinc-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-zinc-500"></span>
+            </span>
+            Inventory System v2.0
+          </motion.div>
 
-        {/* 기능 소개 섹션 */}
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 mb-8">
-          {features.map((feature, index) => (
-            <div
-              key={index}
-              className="bg-white/80 backdrop-blur-sm rounded-xl p-4 border border-gray-100 shadow-sm hover:shadow-md transition-all hover:-translate-y-0.5"
-            >
-              <div className="p-2 rounded-lg bg-gradient-to-br from-purple-100 to-pink-100 w-fit mb-3">
-                <feature.icon className="h-5 w-5 text-purple-600" />
+          <motion.h1
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="text-5xl md:text-7xl font-bold tracking-tight text-zinc-900 mb-6 leading-[1.1]"
+          >
+            Inventory <br />
+            <span className="text-zinc-400">Simplified.</span>
+          </motion.h1>
+
+          <motion.p
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.2 }}
+            className="text-lg text-zinc-500 mb-8 max-w-lg leading-relaxed"
+          >
+            Manage stock with precision. Real-time tracking, seamless integration, and powerful analytics in one minimal interface.
+          </motion.p>
+
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.3 }}
+            className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto"
+          >
+            <Link href="/inventory" className="w-full sm:w-auto">
+              <button className="w-full sm:w-auto px-8 py-3.5 bg-zinc-900 hover:bg-zinc-800 text-white rounded-lg font-medium transition-all flex items-center justify-center gap-2 shadow-sm hover:shadow-md active:scale-95">
+                Start Managing
+                <ArrowRight className="w-4 h-4" />
+              </button>
+            </Link>
+            <button className="w-full sm:w-auto px-8 py-3.5 bg-white border border-zinc-200 hover:bg-zinc-50 text-zinc-700 rounded-lg font-medium transition-all flex items-center justify-center gap-2">
+              <Command className="w-4 h-4 text-zinc-400" />
+              Documentation
+            </button>
+          </motion.div>
+
+          {/* Feature List (Small) */}
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.6, duration: 0.8 }}
+            className="mt-12 pt-8 border-t border-zinc-100 w-full"
+          >
+            <div className="grid grid-cols-2 gap-4 text-sm text-zinc-500">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-zinc-900" />
+                <span>Real-time Sync</span>
               </div>
-              <h3 className="text-sm font-semibold text-gray-900 mb-1">{feature.title}</h3>
-              <p className="text-xs text-gray-600 leading-tight">{feature.description}</p>
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-zinc-900" />
+                <span>Advanced Analytics</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-zinc-900" />
+                <span>Team Collaboration</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-zinc-900" />
+                <span>Export to Excel</span>
+              </div>
             </div>
-          ))}
+          </motion.div>
         </div>
 
-        {/* 기술 스택 섹션 */}
-        <div className="text-center mb-6">
-          <div className="inline-flex items-center gap-2 mb-3">
-            <Sparkles className="h-4 w-4 text-purple-600" />
-            <h2 className="text-lg font-bold text-gray-900">기술 스택</h2>
-          </div>
-          <div className="flex flex-wrap justify-center gap-2">
-            {techStack.map((tech, index) => (
-              <span
-                key={index}
-                className={`px-3 py-1.5 rounded-lg bg-gradient-to-r ${tech.color} text-white text-xs font-medium shadow-sm`}
-              >
-                {tech.name}
-              </span>
-            ))}
-          </div>
-        </div>
+        {/* Right Visual (Abstract UI) */}
+        <motion.div 
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.7, delay: 0.4 }}
+          className="flex-1 hidden md:flex items-center justify-center relative"
+        >
+          {/* Decorative Grid Background */}
+          <div className="absolute inset-0 bg-[linear-gradient(to_right,#f4f4f5_1px,transparent_1px),linear-gradient(to_bottom,#f4f4f5_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_50%,#000_70%,transparent_100%)] -z-10" />
 
-        {/* 하단 CTA */}
-        <div className="text-center">
-          <div className="inline-flex items-center gap-2 text-xs text-gray-500">
-            <Check className="h-3 w-3 text-green-500" />
-            <span>실시간 데이터 동기화</span>
-            <span className="mx-1">•</span>
-            <Check className="h-3 w-3 text-green-500" />
-            <span>안전한 데이터 관리</span>
-            <span className="mx-1">•</span>
-            <Check className="h-3 w-3 text-green-500" />
-            <span>직관적인 인터페이스</span>
+          {/* Abstract Interface Card */}
+          <div className="relative w-full max-w-lg aspect-square">
+            {/* Main Card */}
+            <div className="absolute inset-0 bg-white rounded-xl border border-zinc-200 shadow-2xl shadow-zinc-200/50 overflow-hidden flex flex-col">
+              {/* Header */}
+              <div className="h-12 border-b border-zinc-100 flex items-center px-4 gap-2">
+                <div className="w-3 h-3 rounded-full bg-zinc-200"></div>
+                <div className="w-3 h-3 rounded-full bg-zinc-200"></div>
+                <div className="w-3 h-3 rounded-full bg-zinc-200"></div>
+              </div>
+              {/* Body */}
+              <div className="flex-1 p-6 flex flex-col gap-4 bg-zinc-50/30">
+                <div className="flex gap-4">
+                  <div className="w-1/3 h-24 bg-white rounded-lg border border-zinc-100 shadow-sm p-3">
+                    <div className="w-8 h-8 rounded bg-zinc-100 mb-2"></div>
+                    <div className="w-16 h-2 rounded bg-zinc-100"></div>
+                  </div>
+                  <div className="w-1/3 h-24 bg-white rounded-lg border border-zinc-100 shadow-sm p-3">
+                     <div className="w-8 h-8 rounded bg-zinc-100 mb-2"></div>
+                     <div className="w-16 h-2 rounded bg-zinc-100"></div>
+                  </div>
+                  <div className="w-1/3 h-24 bg-white rounded-lg border border-zinc-100 shadow-sm p-3">
+                     <div className="w-8 h-8 rounded bg-zinc-100 mb-2"></div>
+                     <div className="w-16 h-2 rounded bg-zinc-100"></div>
+                  </div>
+                </div>
+                <div className="flex-1 bg-white rounded-lg border border-zinc-100 shadow-sm p-4">
+                  <div className="flex justify-between mb-4">
+                    <div className="w-32 h-4 rounded bg-zinc-100"></div>
+                    <div className="w-16 h-4 rounded bg-zinc-100"></div>
+                  </div>
+                  {[1,2,3,4].map(i => (
+                    <div key={i} className="flex items-center gap-4 mb-3 last:mb-0">
+                      <div className="w-8 h-8 rounded bg-zinc-50"></div>
+                      <div className="flex-1 h-2 rounded bg-zinc-50"></div>
+                      <div className="w-12 h-2 rounded bg-zinc-50"></div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Floating Element 1 */}
+            <motion.div 
+              animate={{ y: [0, -10, 0] }}
+              transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
+              className="absolute -right-8 top-20 w-48 p-4 bg-white rounded-lg border border-zinc-200 shadow-xl"
+            >
+              <div className="flex items-center gap-3 mb-2">
+                <div className="p-1.5 rounded bg-zinc-100">
+                  <Zap className="w-4 h-4 text-zinc-900" />
+                </div>
+                <span className="text-sm font-semibold">Fast Sync</span>
+              </div>
+              <div className="text-xs text-zinc-500">Updated just now</div>
+            </motion.div>
+
+            {/* Floating Element 2 */}
+            <motion.div 
+              animate={{ y: [0, 10, 0] }}
+              transition={{ repeat: Infinity, duration: 5, ease: "easeInOut", delay: 1 }}
+              className="absolute -left-8 bottom-32 w-48 p-4 bg-white rounded-lg border border-zinc-200 shadow-xl"
+            >
+              <div className="flex items-center gap-3 mb-2">
+                <div className="p-1.5 rounded bg-zinc-100">
+                  <Shield className="w-4 h-4 text-zinc-900" />
+                </div>
+                <span className="text-sm font-semibold">Secure</span>
+              </div>
+              <div className="text-xs text-zinc-500">Encryption Active</div>
+            </motion.div>
+          </div>
+        </motion.div>
+
+      </main>
+
+      {/* Footer Tech Stack */}
+      <footer className="py-8 border-t border-zinc-100 mt-auto bg-white/50 backdrop-blur-sm">
+        <div className="max-w-7xl mx-auto px-6 text-center">
+          <p className="text-xs font-semibold text-zinc-400 uppercase tracking-widest mb-4">Built with modern stack</p>
+          <div className="flex justify-center gap-6 md:gap-12 grayscale opacity-40 hover:opacity-100 transition-opacity">
+             <span className="text-sm font-bold">Next.js 15</span>
+             <span className="text-sm font-bold">React 19</span>
+             <span className="text-sm font-bold">TypeScript</span>
+             <span className="text-sm font-bold">Tailwind 4</span>
+             <span className="text-sm font-bold">Supabase</span>
           </div>
         </div>
-      </div>
+      </footer>
     </div>
-  )
+  );
 }
-
