@@ -250,24 +250,27 @@ export default function Alerts() {
   const activeAlerts = alerts.filter(alert => !dismissedAlerts.has(alert.id))
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* 헤더 */}
-      <div className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-purple-50/30">
+      <div className="max-w-7xl mx-auto px-6 lg:px-8 py-12">
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-100 p-8 mb-8">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
             <div className="flex items-center">
-              <Bell className="h-8 w-8 mr-2 text-yellow-600" />
-              <h1 className="text-2xl font-bold text-gray-900">알림 센터</h1>
+              <div className="p-2 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 mr-3">
+                <Bell className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">알림 센터</h1>
+                <p className="text-sm text-gray-500 mt-1">
+                  총 {activeAlerts.length}개의 알림
+                  {selectedAlerts.size > 0 && ` (${selectedAlerts.size}개 선택됨)`}
+                </p>
+              </div>
             </div>
-            <div className="flex items-center space-x-4">
-              <span className="text-sm text-gray-600">
-                총 {activeAlerts.length}개의 알림
-                {selectedAlerts.size > 0 && ` (${selectedAlerts.size}개 선택됨)`}
-              </span>
+            <div className="flex items-center space-x-3">
               {selectedAlerts.size > 0 && (
                 <button
                   onClick={deleteSelectedAlerts}
-                  className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+                  className="px-5 py-2.5 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-lg hover:from-red-700 hover:to-red-800 transition-all shadow-sm hover:shadow-md font-medium"
                 >
                   선택 삭제
                 </button>
@@ -275,23 +278,20 @@ export default function Alerts() {
               {activeAlerts.length > 0 && (
                 <button
                   onClick={deleteAllAlerts}
-                  className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+                  className="px-5 py-2.5 bg-gradient-to-r from-red-600 to-red-700 text-white rounded-lg hover:from-red-700 hover:to-red-800 transition-all shadow-sm hover:shadow-md font-medium"
                 >
                   일괄 삭제
                 </button>
               )}
               <button
                 onClick={loadAlerts}
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                className="px-5 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all shadow-sm hover:shadow-md font-medium"
               >
                 새로고침
               </button>
             </div>
           </div>
         </div>
-      </div>
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {loading ? (
           <div className="text-center py-12">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>

@@ -111,7 +111,7 @@ export default function AddItem() {
       if (monthlyError) throw monthlyError
 
       showToast('입고등록이 완료되었습니다.', 'success')
-      router.push('/')
+      router.push('/inventory')
     } catch (error) {
       const message = handleError(error, '입고등록')
       showToast(message, 'error')
@@ -125,16 +125,17 @@ export default function AddItem() {
   }, [])
 
   return (
-    <div className="min-h-screen bg-gray-50">
-
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-purple-50/30">
       {/* 메인 컨텐츠 */}
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-white rounded-lg shadow-lg">
-          <div className="p-6">
-            <h2 className="text-2xl font-bold text-gray-900 mb-6 flex items-center">
-              <Save className="h-6 w-6 mr-2" />
-              입고등록
-            </h2>
+      <div className="max-w-4xl mx-auto px-6 lg:px-8 py-12">
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-100">
+          <div className="p-8">
+            <div className="flex items-center mb-8">
+              <div className="p-2 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 mr-3">
+                <Save className="h-5 w-5 text-white" />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900">입고등록</h2>
+            </div>
 
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
@@ -148,7 +149,7 @@ export default function AddItem() {
                     onChange={(e) => setFormData(prev => ({ ...prev, company: e.target.value }))}
                     required
                     aria-label="업체명 선택"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white text-sm transition-all"
                   >
                     <option value="">업체를 선택하세요</option>
                     {companies.map(company => (
@@ -168,7 +169,7 @@ export default function AddItem() {
                     onChange={(e) => setFormData(prev => ({ ...prev, chajong: e.target.value }))}
                     required
                     placeholder="차종을 입력하세요"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white text-sm transition-all"
                   />
                 </div>
 
@@ -183,7 +184,7 @@ export default function AddItem() {
                     onChange={(e) => setFormData(prev => ({ ...prev, pumbeon: e.target.value }))}
                     required
                     placeholder="품번을 입력하세요"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white text-sm transition-all"
                   />
                 </div>
 
@@ -197,7 +198,7 @@ export default function AddItem() {
                     value={formData.pm}
                     onChange={(e) => setFormData(prev => ({ ...prev, pm: e.target.value }))}
                     placeholder="품명을 입력하세요"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white text-sm transition-all"
                   />
                 </div>
 
@@ -210,7 +211,7 @@ export default function AddItem() {
                     type="date"
                     value={formData.in_date}
                     onChange={(e) => setFormData(prev => ({ ...prev, in_date: e.target.value }))}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white text-sm transition-all"
                   />
                 </div>
 
@@ -229,7 +230,7 @@ export default function AddItem() {
                     }}
                     placeholder="입고수량을 입력하세요"
                     min="0"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white text-sm transition-all"
                   />
                 </div>
 
@@ -248,7 +249,7 @@ export default function AddItem() {
                     }}
                     placeholder="발주수량을 입력하세요"
                     min="0"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white text-sm transition-all"
                   />
                 </div>
               </div>
@@ -266,20 +267,20 @@ export default function AddItem() {
                 />
               </div>
 
-              <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-4">
+              <div className="flex flex-col sm:flex-row justify-end space-y-2 sm:space-y-0 sm:space-x-3 mt-8">
                 <Link
-                  href="/"
-                  className="flex items-center justify-center px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors"
+                  href="/inventory"
+                  className="flex items-center justify-center px-5 py-2.5 bg-white text-gray-700 rounded-lg border border-gray-200 hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm hover:shadow-md font-medium"
                 >
-                  <ArrowLeft className="h-4 w-4 mr-1" />
+                  <ArrowLeft className="h-4 w-4 mr-1.5" />
                   취소
                 </Link>
                 <button
                   type="submit"
                   disabled={loading}
-                  className="flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50"
+                  className="flex items-center justify-center px-5 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed font-medium"
                 >
-                  <Save className="h-4 w-4 mr-1" />
+                  <Save className="h-4 w-4 mr-1.5" />
                   {loading ? '저장 중...' : '저장'}
                 </button>
               </div>

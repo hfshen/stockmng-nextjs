@@ -206,40 +206,31 @@ export default function Import() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* 헤더 */}
-      <div className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
-            <div className="flex items-center">
-              <Upload className="h-8 w-8 mr-2 text-green-600" />
-              <h1 className="text-2xl font-bold text-gray-900">데이터 가져오기</h1>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-purple-50/30">
+      <div className="max-w-4xl mx-auto px-6 lg:px-8 py-12">
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-100 p-8">
+          <div className="flex items-center mb-8">
+            <div className="p-2 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 mr-3">
+              <Upload className="h-5 w-5 text-white" />
             </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-white rounded-lg shadow-lg p-6">
-          <div className="mb-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-2">Excel 파일 업로드</h2>
-            <p className="text-gray-600">
-              Excel 파일을 업로드하여 재고 데이터를 일괄 등록할 수 있습니다.
-            </p>
+            <div>
+              <h2 className="text-2xl font-bold text-gray-900">데이터 가져오기</h2>
+              <p className="text-sm text-gray-500 mt-1">Excel 파일을 업로드하여 재고 데이터를 일괄 등록할 수 있습니다.</p>
+            </div>
           </div>
 
           {/* 템플릿 다운로드 */}
-          <div className="mb-6 p-4 bg-blue-50 rounded-lg">
+          <div className="mb-6 p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border border-purple-100">
             <div className="flex items-center justify-between">
               <div className="flex items-center">
-                <FileSpreadsheet className="h-5 w-5 text-blue-600 mr-2" />
-                <span className="text-blue-800 font-medium">Excel 템플릿 다운로드</span>
+                <FileSpreadsheet className="h-5 w-5 text-purple-600 mr-2" />
+                <span className="text-purple-800 font-medium">Excel 템플릿 다운로드</span>
               </div>
               <button
                 onClick={downloadTemplate}
-                className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                className="flex items-center px-5 py-2.5 bg-white text-gray-700 rounded-lg border border-gray-200 hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm hover:shadow-md font-medium"
               >
-                <Download className="h-4 w-4 mr-1" />
+                <Download className="h-4 w-4 mr-1.5" />
                 템플릿 다운로드
               </button>
             </div>
@@ -296,7 +287,7 @@ export default function Import() {
             <button
               onClick={handleUpload}
               disabled={!file || uploading}
-              className="w-full flex items-center justify-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full flex items-center justify-center px-5 py-2.5 bg-gradient-to-r from-green-600 to-green-700 text-white rounded-lg hover:from-green-700 hover:to-green-800 transition-all shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed font-medium"
             >
               {uploading ? (
                 <>

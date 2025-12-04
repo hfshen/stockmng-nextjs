@@ -16,7 +16,7 @@ import {
 } from 'lucide-react'
 
 const navigation = [
-  { name: '재고 현황', href: '/', icon: Home },
+  { name: '재고 현황', href: '/inventory', icon: Home },
   { name: '대시보드', href: '/dashboard', icon: BarChart3 },
   { name: '알림 센터', href: '/alerts', icon: Bell },
   { name: '입고등록', href: '/add', icon: Plus },
@@ -27,6 +27,11 @@ const navigation = [
 export default function Navigation() {
   const pathname = usePathname()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+
+  // 랜딩 페이지에서는 Navigation 숨기기
+  if (pathname === '/') {
+    return null
+  }
 
   return (
     <nav className="bg-white/80 backdrop-blur-sm border-b border-gray-100 sticky top-0 z-50">

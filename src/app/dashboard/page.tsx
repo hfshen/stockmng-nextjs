@@ -235,37 +235,33 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* 헤더 */}
-      <div className="bg-white shadow">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-6">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-purple-50/30">
+      <div className="max-w-7xl mx-auto px-6 lg:px-8 py-12">
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-100 p-8 mb-8">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4">
             <div className="flex items-center">
-              <Warehouse className="h-8 w-8 mr-2 text-blue-600" />
+              <div className="p-2 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 mr-3">
+                <Warehouse className="h-5 w-5 text-white" />
+              </div>
               <h1 className="text-2xl font-bold text-gray-900">대시보드</h1>
             </div>
-            <div className="flex items-center space-x-4">
-              <div className="flex items-center">
-                <Calendar className="h-4 w-4 mr-2 text-gray-500" />
-                <label htmlFor="dashboard-month" className="sr-only">월 선택</label>
-                <input
-                  id="dashboard-month"
-                  type="month"
-                  value={selectedMonth}
-                  onChange={(e) => setSelectedMonth(e.target.value)}
-                  aria-label="월 선택"
-                  className="px-3 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
+            <div className="flex items-center">
+              <Calendar className="h-4 w-4 mr-2 text-gray-500" />
+              <label htmlFor="dashboard-month" className="sr-only">월 선택</label>
+              <input
+                id="dashboard-month"
+                type="month"
+                value={selectedMonth}
+                onChange={(e) => setSelectedMonth(e.target.value)}
+                aria-label="월 선택"
+                className="px-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white text-sm transition-all"
+              />
             </div>
           </div>
         </div>
-      </div>
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* 주요 통계 카드 */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-sm border border-gray-100 p-6">
             <div className="flex items-center">
               <div className="p-2 bg-blue-100 rounded-lg">
                 <Package className="h-6 w-6 text-blue-600" />
@@ -277,7 +273,7 @@ export default function Dashboard() {
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-sm border border-gray-100 p-6">
             <div className="flex items-center">
               <div className="p-2 bg-green-100 rounded-lg">
                 <TrendingUp className="h-6 w-6 text-green-600" />
@@ -289,7 +285,7 @@ export default function Dashboard() {
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-sm border border-gray-100 p-6">
             <div className="flex items-center">
               <div className="p-2 bg-yellow-100 rounded-lg">
                 <AlertTriangle className="h-6 w-6 text-yellow-600" />
@@ -301,7 +297,7 @@ export default function Dashboard() {
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-sm border border-gray-100 p-6">
             <div className="flex items-center">
               <div className="p-2 bg-red-100 rounded-lg">
                 <TrendingDown className="h-6 w-6 text-red-600" />
@@ -316,7 +312,7 @@ export default function Dashboard() {
 
         {/* 월별 입출고 현황 */}
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-8">
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-sm border border-gray-100 p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">월별 입출고 현황</h3>
             <ResponsiveContainer width="100%" height={300}>
               <LineChart data={stats.monthlyTrend}>
@@ -330,7 +326,7 @@ export default function Dashboard() {
             </ResponsiveContainer>
           </div>
 
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-sm border border-gray-100 p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">업체별 재고 현황</h3>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={stats.companyStats}>
@@ -346,7 +342,7 @@ export default function Dashboard() {
 
         {/* 업체별 상세 현황 */}
         <div className="mb-8">
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-sm border border-gray-100 p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">업체별 상세 현황</h3>
             <div className="space-y-6">
               {stats.companyDetails.map((companyDetail) => {
@@ -409,7 +405,7 @@ export default function Dashboard() {
 
         {/* 카테고리별 분포 및 상세 통계 */}
         <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-sm border border-gray-100 p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">카테고리별 분포</h3>
             <ResponsiveContainer width="100%" height={300}>
               <PieChart>
@@ -432,7 +428,7 @@ export default function Dashboard() {
             </ResponsiveContainer>
           </div>
 
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-white/80 backdrop-blur-sm rounded-xl shadow-sm border border-gray-100 p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">이번 달 요약</h3>
             <div className="space-y-4">
               <div className="flex justify-between items-center p-3 bg-green-50 rounded-lg">

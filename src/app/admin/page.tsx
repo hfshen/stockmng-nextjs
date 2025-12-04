@@ -450,8 +450,10 @@ export default function Admin() {
                   <div className="grid grid-cols-3 gap-4">
                     <button
                       onClick={() => setTheme('white')}
-                      className={`p-4 border-2 rounded-lg ${
-                        theme === 'white' ? 'border-blue-500 bg-blue-50' : 'border-gray-300'
+                      className={`p-4 border-2 rounded-lg transition-all ${
+                        theme === 'white' 
+                          ? 'border-purple-500 bg-gradient-to-br from-purple-50 to-pink-50 shadow-md' 
+                          : 'border-gray-200 hover:border-gray-300 hover:shadow-sm'
                       }`}
                     >
                       <div className="w-full h-12 bg-white rounded mb-2"></div>
@@ -459,8 +461,10 @@ export default function Admin() {
                     </button>
                     <button
                       onClick={() => setTheme('black')}
-                      className={`p-4 border-2 rounded-lg ${
-                        theme === 'black' ? 'border-blue-500 bg-blue-50' : 'border-gray-300'
+                      className={`p-4 border-2 rounded-lg transition-all ${
+                        theme === 'black' 
+                          ? 'border-purple-500 bg-gradient-to-br from-purple-50 to-pink-50 shadow-md' 
+                          : 'border-gray-200 hover:border-gray-300 hover:shadow-sm'
                       }`}
                     >
                       <div className="w-full h-12 bg-gray-900 rounded mb-2"></div>
@@ -468,8 +472,10 @@ export default function Admin() {
                     </button>
                     <button
                       onClick={() => setTheme('silver')}
-                      className={`p-4 border-2 rounded-lg ${
-                        theme === 'silver' ? 'border-blue-500 bg-blue-50' : 'border-gray-300'
+                      className={`p-4 border-2 rounded-lg transition-all ${
+                        theme === 'silver' 
+                          ? 'border-purple-500 bg-gradient-to-br from-purple-50 to-pink-50 shadow-md' 
+                          : 'border-gray-200 hover:border-gray-300 hover:shadow-sm'
                       }`}
                     >
                       <div className="w-full h-12 bg-gray-300 rounded mb-2"></div>
