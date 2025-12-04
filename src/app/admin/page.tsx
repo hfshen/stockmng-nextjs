@@ -1,8 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { Settings, Building2, Car, Package, UserPlus, Trash2, Plus, Save, Edit } from 'lucide-react'
+import { useState, useEffect, useCallback } from 'react'
+import { Settings, Package, UserPlus, Trash2, Plus, Save, Edit } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import { useToast } from '@/components/Toast'
+import { handleError } from '@/lib/utils'
 
 interface MasterData {
   id: number
@@ -13,6 +15,7 @@ interface MasterData {
 }
 
 export default function Admin() {
+  const { showToast } = useToast()
   const [activeTab, setActiveTab] = useState<'master' | 'users' | 'settings'>('master')
   const [masterData, setMasterData] = useState<MasterData[]>([])
   const [editingRow, setEditingRow] = useState<number | null>(null)
@@ -27,30 +30,6 @@ export default function Admin() {
   const [userName, setUserName] = useState('')
   const [loading, setLoading] = useState(false)
 
-  useEffect(() => {
-    loadData()
-    loadSettings()
-  }, [])
-
-  useEffect(() => {
-    // 테마 적용
-    const root = document.documentElement
-    if (theme === 'black') {
-      root.style.setProperty('--background', '#0a0a0a')
-      root.style.setProperty('--foreground', '#ededed')
-      document.body.className = 'bg-gray-900 text-gray-100'
-    } else if (theme === 'silver') {
-      root.style.setProperty('--background', '#f3f4f6')
-      root.style.setProperty('--foreground', '#1f2937')
-      document.body.className = 'bg-gray-200 text-gray-800'
-    } else {
-      root.style.setProperty('--background', '#ffffff')
-      root.style.setProperty('--foreground', '#171717')
-      document.body.className = 'bg-gray-50 text-gray-900'
-    }
-    localStorage.setItem('theme', theme)
-  }, [theme])
-
   const loadSettings = () => {
     const savedTheme = localStorage.getItem('theme') as 'white' | 'black' | 'silver' | null
     const savedItemsPerPage = localStorage.getItem('itemsPerPage')
@@ -60,7 +39,7 @@ export default function Admin() {
     if (savedUserName) setUserName(savedUserName)
   }
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('order_register')
@@ -87,19 +66,44 @@ export default function Admin() {
 
       setMasterData(Array.from(uniqueMap.values()))
     } catch (error) {
-      console.error('데이터 로드 오류:', error)
+      const message = handleError(error, '데이터 로드')
+      showToast(message, 'error')
     }
-  }
+  }, [showToast])
+
+  useEffect(() => {
+    loadData()
+    loadSettings()
+  }, [loadData])
+
+  useEffect(() => {
+    // 테마 적용
+    const root = document.documentElement
+    if (theme === 'black') {
+      root.style.setProperty('--background', '#0a0a0a')
+      root.style.setProperty('--foreground', '#ededed')
+      document.body.className = 'bg-gray-900 text-gray-100'
+    } else if (theme === 'silver') {
+      root.style.setProperty('--background', '#f3f4f6')
+      root.style.setProperty('--foreground', '#1f2937')
+      document.body.className = 'bg-gray-200 text-gray-800'
+    } else {
+      root.style.setProperty('--background', '#ffffff')
+      root.style.setProperty('--foreground', '#171717')
+      document.body.className = 'bg-gray-50 text-gray-900'
+    }
+    localStorage.setItem('theme', theme)
+  }, [theme])
 
   const handleAdd = async () => {
     if (!newRow.company || !newRow.chajong || !newRow.pumbeon) {
-      alert('업체명, 차종, 품번은 필수 입력 항목입니다.')
+      showToast('업체명, 차종, 품번은 필수 입력 항목입니다.', 'warning')
       return
     }
 
     setLoading(true)
     try {
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('order_register')
         .insert({
           company: newRow.company,
@@ -117,10 +121,10 @@ export default function Admin() {
 
       setNewRow({ company: '', chajong: '', pumbeon: '', pm: '' })
       loadData()
-      alert('추가되었습니다.')
+      showToast('추가되었습니다.', 'success')
     } catch (error) {
-      console.error('추가 오류:', error)
-      alert('오류가 발생했습니다: ' + (error as Error).message)
+      const message = handleError(error, '추가')
+      showToast(message, 'error')
     } finally {
       setLoading(false)
     }
@@ -143,10 +147,10 @@ export default function Admin() {
 
       setEditingRow(null)
       loadData()
-      alert('수정되었습니다.')
+      showToast('수정되었습니다.', 'success')
     } catch (error) {
-      console.error('수정 오류:', error)
-      alert('오류가 발생했습니다: ' + (error as Error).message)
+      const message = handleError(error, '수정')
+      showToast(message, 'error')
     } finally {
       setLoading(false)
     }
@@ -165,10 +169,10 @@ export default function Admin() {
       if (error) throw error
 
       loadData()
-      alert('삭제되었습니다.')
+      showToast('삭제되었습니다.', 'success')
     } catch (error) {
-      console.error('삭제 오류:', error)
-      alert('오류가 발생했습니다: ' + (error as Error).message)
+      const message = handleError(error, '삭제')
+      showToast(message, 'error')
     } finally {
       setLoading(false)
     }
@@ -178,19 +182,21 @@ export default function Admin() {
     localStorage.setItem('itemsPerPage', itemsPerPage.toString())
     localStorage.setItem('theme', theme)
     localStorage.setItem('userName', userName)
-    alert('설정이 저장되었습니다.')
+    showToast('설정이 저장되었습니다.', 'success')
   }
 
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-white rounded-lg shadow-lg">
-          <div className="p-6">
-            <h2 className="text-2xl font-bold text-gray-900 flex items-center mb-6">
-              <Settings className="h-6 w-6 mr-2" />
-              관리자 설정
-            </h2>
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-purple-50/30">
+      <div className="max-w-7xl mx-auto px-6 lg:px-8 py-12">
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-100">
+          <div className="p-8">
+            <div className="flex items-center mb-8">
+              <div className="p-2 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 mr-3">
+                <Settings className="h-5 w-5 text-white" />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900">관리자 설정</h2>
+            </div>
 
             {/* 탭 메뉴 */}
             <div className="border-b border-gray-200 mb-6">
@@ -269,29 +275,29 @@ export default function Admin() {
                     <button
                       onClick={handleAdd}
                       disabled={loading || !newRow.company || !newRow.chajong || !newRow.pumbeon}
-                      className="flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50"
+                      className="flex items-center justify-center px-5 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed font-medium"
                     >
-                      <Plus className="h-4 w-4 mr-1" />
+                      <Plus className="h-4 w-4 mr-1.5" />
                       추가
                     </button>
                   </div>
                 </div>
 
                 {/* 데이터 테이블 */}
-                <div className="border rounded-lg overflow-hidden">
-                  <table className="min-w-full divide-y divide-gray-200">
-                    <thead className="bg-gray-50">
+                <div className="border border-gray-100 rounded-xl overflow-hidden">
+                  <table className="min-w-full divide-y divide-gray-100">
+                    <thead className="bg-gradient-to-r from-gray-50 to-purple-50/50">
                       <tr>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                           업체명
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                           차종
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                           품번
                         </th>
-                        <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
                           품명
                         </th>
                         <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -299,9 +305,9 @@ export default function Admin() {
                         </th>
                       </tr>
                     </thead>
-                    <tbody className="bg-white divide-y divide-gray-200">
+                    <tbody className="bg-white divide-y divide-gray-100">
                       {masterData.map((row) => (
-                        <tr key={row.id} className="hover:bg-gray-50">
+                        <tr key={row.id} className="hover:bg-purple-50/30 transition-colors">
                           {editingRow === row.id ? (
                             <>
                               <td className="px-6 py-4 whitespace-nowrap">
@@ -474,9 +480,9 @@ export default function Admin() {
 
                 <button
                   onClick={handleSaveSettings}
-                  className="flex items-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+                  className="flex items-center px-5 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all shadow-sm hover:shadow-md font-medium"
                 >
-                  <Save className="h-4 w-4 mr-1" />
+                  <Save className="h-4 w-4 mr-1.5" />
                   설정 저장
                 </button>
               </div>

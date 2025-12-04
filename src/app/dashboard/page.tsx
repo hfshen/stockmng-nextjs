@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line } from 'recharts'
 import { TrendingUp, TrendingDown, Package, AlertTriangle, Warehouse, Calendar } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import { handleError } from '@/lib/utils'
 
 interface DashboardStats {
   totalItems: number
@@ -202,7 +203,7 @@ export default function Dashboard() {
         companyDetails
       })
     } catch (error) {
-      console.error('대시보드 데이터 로드 오류:', error)
+      handleError(error, '대시보드 데이터 로드')
     } finally {
       setLoading(false)
     }

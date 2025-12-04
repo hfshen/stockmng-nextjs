@@ -5,9 +5,12 @@ import { ArrowLeft, Save } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { useToast } from '@/components/Toast'
+import { handleError } from '@/lib/utils'
 
 export default function AddItem() {
   const router = useRouter()
+  const { showToast } = useToast()
   const [companies, setCompanies] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
@@ -35,7 +38,7 @@ export default function AddItem() {
       const uniqueCompanies = [...new Set(data?.map(item => item.company) ?? [])]
       setCompanies(uniqueCompanies.length > 0 ? uniqueCompanies : ['명진', '선경내셔날'])
     } catch (error) {
-      console.error('업체 목록 로드 오류:', error)
+      handleError(error, '업체 목록 로드')
       setCompanies(['명진', '선경내셔날'])
     }
   }
@@ -107,11 +110,11 @@ export default function AddItem() {
 
       if (monthlyError) throw monthlyError
 
-      alert('입고등록이 완료되었습니다.')
+      showToast('입고등록이 완료되었습니다.', 'success')
       router.push('/')
     } catch (error) {
-      console.error('입고등록 오류:', error)
-      alert('오류가 발생했습니다: ' + (error as Error).message)
+      const message = handleError(error, '입고등록')
+      showToast(message, 'error')
     } finally {
       setLoading(false)
     }

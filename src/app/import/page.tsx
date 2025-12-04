@@ -5,6 +5,7 @@ import type { ChangeEvent } from 'react'
 import { Upload, FileSpreadsheet, CheckCircle, AlertCircle, Download } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
 import * as XLSX from 'xlsx'
+import { handleError } from '@/lib/utils'
 
 interface UploadResult {
   success: number
@@ -38,7 +39,7 @@ export default function Import() {
           // 첫 5행만 미리보기
           setPreview(jsonData.slice(0, 5) as string[][])
         } catch (error) {
-          console.error('파일 읽기 오류:', error)
+          handleError(error, '파일 읽기')
         }
       }
       reader.readAsArrayBuffer(selectedFile)
@@ -82,7 +83,7 @@ export default function Import() {
         .eq('year_month', currentMonth)
 
       if (deleteError) {
-        console.error('기존 데이터 삭제 오류:', deleteError)
+        handleError(deleteError, '기존 데이터 삭제')
         // 삭제 오류가 있어도 계속 진행
       }
 

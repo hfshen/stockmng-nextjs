@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { AlertTriangle, Bell, CheckCircle, XCircle, Package, Edit } from 'lucide-react'
 import { supabase, InventoryItem, EditHistory } from '@/lib/supabase'
+import { handleError } from '@/lib/utils'
 
 interface Alert {
   id: string
@@ -52,7 +53,7 @@ export default function Alerts() {
         .order('created_at', { ascending: false })
 
       if (editHistoryError) {
-        console.error('수정 이력 조회 오류:', editHistoryError)
+        handleError(editHistoryError, '수정 이력 조회')
       }
 
       const newAlerts: Alert[] = []
@@ -161,7 +162,7 @@ export default function Alerts() {
 
       setAlerts(newAlerts)
     } catch (error) {
-      console.error('알림 로드 오류:', error)
+      handleError(error, '알림 로드')
     } finally {
       setLoading(false)
     }

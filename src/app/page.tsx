@@ -3,6 +3,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { Search, Plus, Download, Edit, FileText, X } from 'lucide-react'
 import { supabase, InventoryItem } from '@/lib/supabase'
+import { useToast } from '@/components/Toast'
+import { handleError } from '@/lib/utils'
 
 // Combobox 컴포넌트
 function Combobox({ 
@@ -113,6 +115,7 @@ function InboundModal({
   item?: InventoryItem
   onSave: () => void
 }) {
+  const { showToast } = useToast()
   const [companies, setCompanies] = useState<string[]>([])
   const [chajongs, setChajongs] = useState<string[]>([])
   const [pumbeons, setPumbeons] = useState<string[]>([])
@@ -166,7 +169,7 @@ function InboundModal({
       setPumbeons(uniquePumbeons)
       setPms(uniquePms)
     } catch (error) {
-      console.error('옵션 로드 오류:', error)
+      handleError(error, '옵션 로드')
     }
   }
 
@@ -235,12 +238,12 @@ function InboundModal({
 
       if (monthlyError) throw monthlyError
 
-      alert('입고등록이 완료되었습니다.')
+      showToast('입고등록이 완료되었습니다.', 'success')
       onSave()
       onClose()
     } catch (error) {
-      console.error('입고등록 오류:', error)
-      alert('오류가 발생했습니다: ' + (error as Error).message)
+      const message = handleError(error, '입고등록')
+      showToast(message, 'error')
     } finally {
       setLoading(false)
     }
@@ -249,21 +252,23 @@ function InboundModal({
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
-        <div className="p-6">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold text-gray-900 flex items-center">
-              <Plus className="h-6 w-6 mr-2" />
-              입고등록
-            </h2>
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto border border-gray-100">
+        <div className="p-8">
+          <div className="flex justify-between items-center mb-8">
+            <div className="flex items-center">
+              <div className="p-2 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 mr-3">
+                <Plus className="h-5 w-5 text-white" />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900">입고등록</h2>
+            </div>
             <button
               onClick={onClose}
               aria-label="닫기"
               title="닫기"
-              className="text-gray-400 hover:text-gray-600"
+              className="p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
             >
-              <X className="h-6 w-6" />
+              <X className="h-5 w-5" />
             </button>
           </div>
 
@@ -384,18 +389,18 @@ function InboundModal({
               />
             </div>
 
-            <div className="flex justify-end space-x-4">
+            <div className="flex justify-end space-x-3 mt-8">
               <button
                 type="button"
                 onClick={onClose}
-                className="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors"
+                className="px-5 py-2.5 bg-white text-gray-700 rounded-lg border border-gray-200 hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm hover:shadow-md font-medium"
               >
                 취소
               </button>
               <button
                 type="submit"
                 disabled={loading}
-                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors disabled:opacity-50"
+                className="px-5 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed font-medium"
               >
                 {loading ? '저장 중...' : '저장'}
               </button>
@@ -419,6 +424,7 @@ function EditModal({
   item?: InventoryItem
   onSave: () => void
 }) {
+  const { showToast } = useToast()
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
     in_qty: item?.in_qty || 0,
@@ -506,17 +512,17 @@ function EditModal({
           })
 
         if (historyError) {
-          console.error('수정 이력 저장 오류:', historyError)
+          handleError(historyError, '수정 이력 저장')
           // 이력 저장 실패해도 수정은 계속 진행
         }
       }
 
-      alert('수정이 완료되었습니다.')
+      showToast('수정이 완료되었습니다.', 'success')
       onSave()
       onClose()
     } catch (error) {
-      console.error('수정 오류:', error)
-      alert('오류가 발생했습니다: ' + (error as Error).message)
+      const message = handleError(error, '수정')
+      showToast(message, 'error')
     } finally {
       setLoading(false)
     }
@@ -536,12 +542,12 @@ function EditModal({
 
       if (error) throw error
 
-      alert('삭제가 완료되었습니다.')
+      showToast('삭제가 완료되었습니다.', 'success')
       onSave()
       onClose()
     } catch (error) {
-      console.error('삭제 오류:', error)
-      alert('오류가 발생했습니다: ' + (error as Error).message)
+      const message = handleError(error, '삭제')
+      showToast(message, 'error')
     } finally {
       setLoading(false)
     }
@@ -550,21 +556,23 @@ function EditModal({
   if (!isOpen || !item) return null
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full mx-4">
-        <div className="p-6">
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold text-gray-900 flex items-center">
-              <Edit className="h-6 w-6 mr-2" />
-              수정
-            </h2>
+    <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full border border-gray-100">
+        <div className="p-8">
+          <div className="flex justify-between items-center mb-8">
+            <div className="flex items-center">
+              <div className="p-2 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 mr-3">
+                <Edit className="h-5 w-5 text-white" />
+              </div>
+              <h2 className="text-2xl font-bold text-gray-900">수정</h2>
+            </div>
             <button
               onClick={onClose}
               aria-label="닫기"
               title="닫기"
-              className="text-gray-400 hover:text-gray-600"
+              className="p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
             >
-              <X className="h-6 w-6" />
+              <X className="h-5 w-5" />
             </button>
           </div>
 
@@ -679,6 +687,7 @@ function EditModal({
 }
 
 export default function Home() {
+  const { showToast } = useToast()
   const [data, setData] = useState<InventoryItem[]>([])
   const [companies, setCompanies] = useState<string[]>([])
   const [chajongs, setChajongs] = useState<string[]>([])
@@ -785,12 +794,13 @@ export default function Home() {
 
       setData(filteredData)
     } catch (error) {
-      console.error('데이터 로드 오류:', error)
+      const message = handleError(error, '데이터 로드')
+      showToast(message, 'error')
       setData([])
     } finally {
       setLoading(false)
     }
-  }, [filters, sortBy, sortOrder])
+  }, [filters, sortBy, sortOrder, showToast])
 
   // 옵션 목록 로드
   const loadOptions = useCallback(async () => {
@@ -812,7 +822,7 @@ export default function Home() {
       setPumbeons(uniquePumbeons)
       setPms(uniquePms)
     } catch (error) {
-      console.error('옵션 로드 오류:', error)
+      handleError(error, '옵션 로드')
       setCompanies(['명진', '선경내셔날'])
     }
   }, [])
@@ -830,7 +840,7 @@ export default function Home() {
       const uniqueMonths = [...new Set(data?.map(item => item.year_month) ?? [])]
       setMonths(uniqueMonths.length > 0 ? uniqueMonths : [getCurrentMonth()])
     } catch (error) {
-      console.error('월별 목록 로드 오류:', error)
+      handleError(error, '월별 목록 로드')
       setMonths([getCurrentMonth()])
     }
   }, [])
@@ -906,7 +916,7 @@ export default function Home() {
     try {
       // 월별 데이터 업데이트
       const currentMonth = new Date().toISOString().slice(0, 7)
-      const { data: monthlyData } = await supabase
+      await supabase
         .from('monthly_data')
         .select('*')
         .eq('year_month', currentMonth)
@@ -954,9 +964,10 @@ export default function Home() {
 
       setEditingCell(null)
       loadData() // 데이터 다시 로드
+      showToast('저장되었습니다.', 'success')
     } catch (error) {
-      console.error('셀 저장 오류:', error)
-      alert('저장 중 오류가 발생했습니다.')
+      const message = handleError(error, '셀 저장')
+      showToast(message, 'error')
     }
   }
 
@@ -972,48 +983,53 @@ export default function Home() {
   const paginatedData = data.slice(startIndex, endIndex)
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-purple-50/30">
       {/* 메인 컨텐츠 */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="bg-white rounded-lg shadow-lg">
-          <div className="p-6">
-            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-6 space-y-4 sm:space-y-0">
-              <h2 className="text-xl sm:text-2xl font-bold text-gray-900 flex items-center">
-                <Search className="h-5 w-5 sm:h-6 sm:w-6 mr-2" />
-                재고 현황
-              </h2>
-              <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
+      <div className="max-w-7xl mx-auto px-6 lg:px-8 py-12">
+        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-sm border border-gray-100">
+          <div className="p-8">
+            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center mb-8 space-y-4 sm:space-y-0">
+              <div>
+                <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 flex items-center mb-2">
+                  <div className="p-2 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 mr-3">
+                    <Search className="h-5 w-5 text-white" />
+                  </div>
+                  재고 현황
+                </h2>
+                <p className="text-sm text-gray-500 ml-14">전체 재고 현황을 확인하고 관리하세요</p>
+              </div>
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-3">
                 <button
                   onClick={() => {
                     setSelectedItem(undefined)
                     setShowInboundModal(true)
                   }}
-                  className="flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm"
+                  className="flex items-center justify-center px-5 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all shadow-sm hover:shadow-md text-sm font-medium"
                 >
-                  <Plus className="h-4 w-4 mr-1" />
+                  <Plus className="h-4 w-4 mr-1.5" />
                   입고등록
                 </button>
                 <button
                   onClick={exportCSV}
-                  className="flex items-center justify-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm"
+                  className="flex items-center justify-center px-5 py-2.5 bg-white text-gray-700 rounded-lg border border-gray-200 hover:bg-gray-50 hover:border-gray-300 transition-all shadow-sm hover:shadow-md text-sm font-medium"
                 >
-                  <Download className="h-4 w-4 mr-1" />
+                  <Download className="h-4 w-4 mr-1.5" />
                   내보내기
                 </button>
               </div>
             </div>
 
             {/* 검색 필터 */}
-            <div className="space-y-4 mb-6">
+            <div className="space-y-4 mb-8">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
                 <div>
-                  <label htmlFor="filter-month" className="block text-sm font-medium text-gray-700 mb-1">월별</label>
+                  <label htmlFor="filter-month" className="block text-sm font-medium text-gray-700 mb-2">월별</label>
                   <select
                     id="filter-month"
                     value={filters.month}
                     onChange={(e) => setFilters(prev => ({ ...prev, month: e.target.value }))}
                     aria-label="월별 필터"
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent bg-white text-sm transition-all"
                   >
                     {months.map(month => (
                       <option key={month} value={month}>{month}</option>
@@ -1050,7 +1066,7 @@ export default function Home() {
                 <div className="flex items-end">
                   <button
                     onClick={loadData}
-                    className="w-full px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors flex items-center justify-center text-sm"
+                    className="w-full px-4 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all shadow-sm hover:shadow-md flex items-center justify-center text-sm font-medium"
                   >
                     <Search className="h-4 w-4 mr-1" />
                     조회
@@ -1112,11 +1128,11 @@ export default function Home() {
             </div>
 
             {/* 데이터 테이블 */}
-            <div className="overflow-x-auto shadow ring-1 ring-black ring-opacity-5 rounded-lg">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+            <div className="overflow-x-auto rounded-xl border border-gray-100">
+              <table className="min-w-full divide-y divide-gray-100">
+                <thead className="bg-gradient-to-r from-gray-50 to-purple-50/50">
                   <tr>
-                    <th className="px-2 sm:px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[100px] sm:min-w-[120px] cursor-pointer hover:bg-gray-100"
+                    <th className="px-4 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider min-w-[100px] sm:min-w-[120px] cursor-pointer hover:bg-purple-50/50 transition-colors"
                       onClick={() => {
                         setSortBy('company')
                         setSortOrder(sortBy === 'company' && sortOrder === 'asc' ? 'desc' : 'asc')
@@ -1129,7 +1145,7 @@ export default function Home() {
                         )}
                       </div>
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[200px] cursor-pointer hover:bg-gray-100"
+                    <th className="px-4 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider min-w-[200px] cursor-pointer hover:bg-purple-50/50 transition-colors"
                       onClick={() => {
                         setSortBy('chajong')
                         setSortOrder(sortBy === 'chajong' && sortOrder === 'asc' ? 'desc' : 'asc')
@@ -1168,7 +1184,7 @@ export default function Home() {
                         )}
                       </div>
                     </th>
-                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[80px] cursor-pointer hover:bg-gray-100"
+                    <th className="px-4 py-4 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider min-w-[80px] cursor-pointer hover:bg-purple-50/50 transition-colors"
                       onClick={() => {
                         setSortBy('in_qty')
                         setSortOrder(sortBy === 'in_qty' && sortOrder === 'asc' ? 'desc' : 'asc')
@@ -1181,7 +1197,7 @@ export default function Home() {
                         )}
                       </div>
                     </th>
-                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[80px] cursor-pointer hover:bg-gray-100"
+                    <th className="px-4 py-4 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider min-w-[80px] cursor-pointer hover:bg-purple-50/50 transition-colors"
                       onClick={() => {
                         setSortBy('stock_qty')
                         setSortOrder(sortBy === 'stock_qty' && sortOrder === 'asc' ? 'desc' : 'asc')
@@ -1194,8 +1210,8 @@ export default function Home() {
                         )}
                       </div>
                     </th>
-                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[120px]">미입고/과입고</th>
-                    <th className="px-4 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[80px] cursor-pointer hover:bg-gray-100"
+                    <th className="px-4 py-4 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider min-w-[120px]">미입고/과입고</th>
+                    <th className="px-4 py-4 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider min-w-[80px] cursor-pointer hover:bg-purple-50/50 transition-colors"
                       onClick={() => {
                         setSortBy('order_qty')
                         setSortOrder(sortBy === 'order_qty' && sortOrder === 'asc' ? 'desc' : 'asc')
@@ -1221,20 +1237,23 @@ export default function Home() {
                         )}
                       </div>
                     </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[150px]">비고</th>
-                    <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider min-w-[100px]">작업</th>
+                    <th className="px-4 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider min-w-[150px]">비고</th>
+                    <th className="px-4 py-4 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider min-w-[100px]">작업</th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="bg-white divide-y divide-gray-100">
                   {loading ? (
                     <tr>
-                      <td colSpan={11} className="px-6 py-4 text-center text-gray-500">
-                        데이터를 불러오는 중...
+                      <td colSpan={11} className="px-6 py-8 text-center text-gray-400">
+                        <div className="flex items-center justify-center">
+                          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-600"></div>
+                          <span className="ml-3">데이터를 불러오는 중...</span>
+                        </div>
                       </td>
                     </tr>
                   ) : paginatedData.length === 0 ? (
                     <tr>
-                      <td colSpan={11} className="px-6 py-4 text-center text-gray-500">
+                      <td colSpan={11} className="px-6 py-12 text-center text-gray-400">
                         데이터가 없습니다.
                       </td>
                     </tr>
@@ -1242,20 +1261,20 @@ export default function Home() {
                     paginatedData.map((item) => (
                       <tr 
                         key={item.id} 
-                        className="hover:bg-gray-50"
+                        className="hover:bg-purple-50/30 transition-colors"
                       >
-                        <td className="px-2 sm:px-4 py-3 sm:py-4 text-xs sm:text-sm text-gray-900 break-words">{item.company}</td>
-                        <td className="px-2 sm:px-4 py-3 sm:py-4 text-xs sm:text-sm text-gray-900 break-words" title={item.chajong}>
+                        <td className="px-4 py-4 text-sm text-gray-900 break-words font-medium">{item.company}</td>
+                        <td className="px-4 py-4 text-sm text-gray-900 break-words" title={item.chajong}>
                           <div className="max-w-[150px] sm:max-w-[200px] truncate">{item.chajong}</div>
                         </td>
-                        <td className="px-2 sm:px-4 py-3 sm:py-4 text-xs sm:text-sm text-gray-900 break-words" title={item.pumbeon}>
+                        <td className="px-4 py-4 text-sm text-gray-900 break-words" title={item.pumbeon}>
                           <div className="max-w-[130px] sm:max-w-[180px] truncate">{item.pumbeon}</div>
                         </td>
-                        <td className="px-2 sm:px-4 py-3 sm:py-4 text-xs sm:text-sm text-gray-900 break-words" title={item.pm}>
+                        <td className="px-4 py-4 text-sm text-gray-900 break-words" title={item.pm}>
                           <div className="max-w-[200px] sm:max-w-[250px] truncate">{item.pm}</div>
                         </td>
                         <td 
-                          className="px-2 sm:px-4 py-3 sm:py-4 text-xs sm:text-sm text-gray-900 text-right cursor-pointer hover:bg-blue-50"
+                          className="px-4 py-4 text-sm text-gray-900 text-right cursor-pointer hover:bg-purple-50/50 transition-colors"
                           onDoubleClick={() => handleCellDoubleClick(item, 'in_qty')}
                         >
                           {editingCell?.itemId === item.id && editingCell.field === 'in_qty' ? (
@@ -1341,8 +1360,8 @@ export default function Home() {
                             item.order_qty.toLocaleString()
                           )}
                         </td>
-                        <td className="px-2 sm:px-4 py-3 sm:py-4 text-xs sm:text-sm text-gray-900 text-right whitespace-nowrap">{item.out_qty.toLocaleString()}</td>
-                        <td className="px-2 sm:px-4 py-3 sm:py-4 text-xs sm:text-sm text-gray-900 break-words">
+                        <td className="px-4 py-4 text-sm text-gray-900 text-right whitespace-nowrap">{item.out_qty.toLocaleString()}</td>
+                        <td className="px-4 py-4 text-sm text-gray-900 break-words">
                           {item.remark ? (
                             <div className="relative group">
                               <FileText className="h-4 w-4 text-blue-500 inline-block" />
@@ -1354,14 +1373,14 @@ export default function Home() {
                             <span className="text-gray-400">-</span>
                           )}
                         </td>
-                        <td className="px-2 sm:px-4 py-3 sm:py-4 text-center">
+                        <td className="px-4 py-4 text-center">
                           <button
                             onClick={(e) => {
                               e.stopPropagation()
                               setSelectedItem(item)
                               setShowEditModal(true)
                             }}
-                            className="px-2 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors text-xs"
+                            className="px-3 py-1.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all shadow-sm hover:shadow-md text-xs font-medium"
                           >
                             <Edit className="h-3 w-3 inline mr-1" />
                             수정

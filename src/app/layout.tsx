@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 import Navigation from "@/components/Navigation";
+import { ToastProvider } from "@/components/Toast";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -19,9 +20,11 @@ export default function RootLayout({
   return (
     <html lang="ko">
       <body className={inter.className}>
-        <Navigation />
-        {children}
-        <Analytics />
+        <ToastProvider>
+          <Navigation />
+          {children}
+          <Analytics />
+        </ToastProvider>
       </body>
     </html>
   );
