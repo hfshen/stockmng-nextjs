@@ -12,25 +12,32 @@ import {
   Warehouse,
   Menu,
   X,
-  Settings
+  Settings,
+  Globe
 } from 'lucide-react'
-
-const navigation = [
-  { name: '재고 현황', href: '/inventory', icon: Home },
-  { name: '대시보드', href: '/dashboard', icon: BarChart3 },
-  { name: '알림 센터', href: '/alerts', icon: Bell },
-  { name: '입고등록', href: '/add', icon: Plus },
-  { name: '데이터 가져오기', href: '/import', icon: Upload },
-  { name: '관리자', href: '/admin', icon: Settings },
-]
+import { useLanguage } from '@/components/LanguageContext'
 
 export default function Navigation() {
   const pathname = usePathname()
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const { t, language, setLanguage } = useLanguage()
+
+  const navigation = [
+    { name: t.nav.inventory, href: '/inventory', icon: Home },
+    { name: t.nav.dashboard, href: '/dashboard', icon: BarChart3 },
+    { name: t.nav.alerts, href: '/alerts', icon: Bell },
+    { name: t.nav.add, href: '/add', icon: Plus },
+    { name: t.nav.import, href: '/import', icon: Upload },
+    { name: t.nav.admin, href: '/admin', icon: Settings },
+  ]
 
   // 랜딩 페이지에서는 Navigation 숨기기
   if (pathname === '/') {
     return null
+  }
+
+  const toggleLanguage = () => {
+    setLanguage(language === 'ko' ? 'en' : 'ko')
   }
 
   return (
@@ -52,7 +59,7 @@ export default function Navigation() {
               const isActive = pathname === item.href
               return (
                 <Link
-                  key={item.name}
+                  key={item.href}
                   href={item.href}
                   className={`flex items-center px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200 ${
                     isActive
@@ -65,10 +72,29 @@ export default function Navigation() {
                 </Link>
               )
             })}
+            
+            {/* 언어 토글 버튼 */}
+            <div className="pl-2 ml-2 border-l border-zinc-200">
+              <button
+                onClick={toggleLanguage}
+                className="flex items-center px-3 py-1.5 rounded-md text-sm font-medium text-zinc-500 hover:text-zinc-900 hover:bg-zinc-50 transition-all"
+              >
+                <Globe className="h-4 w-4 mr-2" />
+                <span className={language === 'ko' ? 'font-bold text-zinc-900' : ''}>KR</span>
+                <span className="mx-1 text-zinc-300">|</span>
+                <span className={language === 'en' ? 'font-bold text-zinc-900' : ''}>EN</span>
+              </button>
+            </div>
           </div>
 
           {/* 모바일 메뉴 버튼 */}
-          <div className="md:hidden flex items-center">
+          <div className="md:hidden flex items-center gap-2">
+            <button
+              onClick={toggleLanguage}
+              className="p-2 rounded-md text-zinc-500 hover:text-zinc-900 hover:bg-zinc-50 transition-colors"
+            >
+              <span className="text-xs font-bold">{language === 'ko' ? 'KR' : 'EN'}</span>
+            </button>
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
               className="p-2 rounded-md text-zinc-500 hover:text-zinc-900 hover:bg-zinc-50 transition-colors"
@@ -90,7 +116,7 @@ export default function Navigation() {
                 const isActive = pathname === item.href
                 return (
                   <Link
-                    key={item.name}
+                    key={item.href}
                     href={item.href}
                     onClick={() => setIsMobileMenuOpen(false)}
                     className={`flex items-center px-4 py-3 rounded-md text-sm font-medium transition-all ${

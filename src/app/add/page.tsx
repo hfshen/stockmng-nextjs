@@ -7,10 +7,12 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useToast } from '@/components/Toast'
 import { handleError } from '@/lib/utils'
+import { useLanguage } from '@/components/LanguageContext'
 
 export default function AddItem() {
   const router = useRouter()
   const { showToast } = useToast()
+  const { t } = useLanguage()
   const [companies, setCompanies] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
@@ -110,7 +112,7 @@ export default function AddItem() {
 
       if (monthlyError) throw monthlyError
 
-      showToast('입고등록이 완료되었습니다.', 'success')
+      showToast(t.common.success, 'success')
       router.push('/inventory')
     } catch (error) {
       const message = handleError(error, '입고등록')
@@ -135,10 +137,10 @@ export default function AddItem() {
             className="inline-flex items-center text-sm text-zinc-500 hover:text-zinc-900 mb-4 transition-colors"
           >
             <ArrowLeft className="w-4 h-4 mr-1" />
-            Back to Inventory
+            {t.add.back}
           </Link>
-          <h1 className="text-3xl font-bold text-zinc-900 tracking-tight">New Inbound Item</h1>
-          <p className="text-zinc-500 mt-2">Register new stock items or update existing inventory counts.</p>
+          <h1 className="text-3xl font-bold text-zinc-900 tracking-tight">{t.add.title}</h1>
+          <p className="text-zinc-500 mt-2">{t.add.description}</p>
         </div>
 
         <div className="bg-white rounded-xl shadow-sm border border-zinc-200 overflow-hidden">
@@ -148,12 +150,12 @@ export default function AddItem() {
             <div>
               <h3 className="text-lg font-medium text-zinc-900 mb-4 flex items-center gap-2">
                 <div className="w-1 h-6 bg-zinc-900 rounded-full"></div>
-                Item Details
+                {t.add.itemDetails}
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
                   <label htmlFor="add-company" className="block text-sm font-medium text-zinc-700 mb-1.5">
-                    Supplier <span className="text-red-500">*</span>
+                    {t.add.supplier} <span className="text-red-500">*</span>
                   </label>
                   <div className="relative">
                     <select
@@ -163,7 +165,7 @@ export default function AddItem() {
                       required
                       className="w-full px-3 py-2.5 bg-zinc-50 border border-zinc-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:border-transparent transition-all appearance-none"
                     >
-                      <option value="">Select Supplier</option>
+                      <option value="">Select {t.add.supplier}</option>
                       {companies.map(company => (
                         <option key={company} value={company}>{company}</option>
                       ))}
@@ -176,7 +178,7 @@ export default function AddItem() {
 
                 <div>
                   <label htmlFor="add-chajong" className="block text-sm font-medium text-zinc-700 mb-1.5">
-                    Model <span className="text-red-500">*</span>
+                    {t.add.model} <span className="text-red-500">*</span>
                   </label>
                   <input
                     id="add-chajong"
@@ -191,7 +193,7 @@ export default function AddItem() {
 
                 <div>
                   <label htmlFor="add-pumbeon" className="block text-sm font-medium text-zinc-700 mb-1.5">
-                    Part Number <span className="text-red-500">*</span>
+                    {t.add.partNo} <span className="text-red-500">*</span>
                   </label>
                   <input
                     id="add-pumbeon"
@@ -206,7 +208,7 @@ export default function AddItem() {
 
                 <div>
                   <label htmlFor="add-pm" className="block text-sm font-medium text-zinc-700 mb-1.5">
-                    Part Name
+                    {t.add.partName}
                   </label>
                   <input
                     id="add-pm"
@@ -226,12 +228,12 @@ export default function AddItem() {
             <div>
               <h3 className="text-lg font-medium text-zinc-900 mb-4 flex items-center gap-2">
                 <div className="w-1 h-6 bg-zinc-900 rounded-full"></div>
-                Stock Information
+                {t.add.stockInfo}
               </h3>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div>
                   <label htmlFor="add-in-date" className="block text-sm font-medium text-zinc-700 mb-1.5">
-                    Inbound Date
+                    {t.add.inDate}
                   </label>
                   <input
                     id="add-in-date"
@@ -244,7 +246,7 @@ export default function AddItem() {
 
                 <div>
                   <label htmlFor="add-in-qty" className="block text-sm font-medium text-zinc-700 mb-1.5">
-                    Inbound Quantity
+                    {t.add.inQty}
                   </label>
                   <input
                     id="add-in-qty"
@@ -260,7 +262,7 @@ export default function AddItem() {
 
                 <div>
                   <label htmlFor="add-order-qty" className="block text-sm font-medium text-zinc-700 mb-1.5">
-                    Order Quantity
+                    {t.add.orderQty}
                   </label>
                   <input
                     id="add-order-qty"
@@ -278,14 +280,14 @@ export default function AddItem() {
 
             <div>
               <label htmlFor="add-remark" className="block text-sm font-medium text-zinc-700 mb-1.5">
-                Notes
+                {t.add.notes}
               </label>
               <textarea
                 id="add-remark"
                 value={formData.remark}
                 onChange={(e) => setFormData(prev => ({ ...prev, remark: e.target.value }))}
                 rows={3}
-                placeholder="Additional notes..."
+                placeholder=""
                 className="w-full px-3 py-2.5 bg-zinc-50 border border-zinc-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:border-transparent transition-all resize-none"
               />
             </div>
@@ -295,7 +297,7 @@ export default function AddItem() {
                 href="/inventory"
                 className="px-6 py-2.5 bg-white text-zinc-700 rounded-lg border border-zinc-200 hover:bg-zinc-50 font-medium text-sm transition-all"
               >
-                Cancel
+                {t.add.cancel}
               </Link>
               <button
                 type="submit"
@@ -303,7 +305,7 @@ export default function AddItem() {
                 className="flex items-center px-6 py-2.5 bg-zinc-900 text-white rounded-lg hover:bg-zinc-800 disabled:opacity-50 font-medium text-sm transition-all shadow-sm"
               >
                 <Plus className="w-4 h-4 mr-2" />
-                {loading ? 'Saving...' : 'Register Item'}
+                {loading ? t.add.saving : t.add.save}
               </button>
             </div>
           </form>

@@ -2,16 +2,33 @@
 
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import { ArrowRight, CheckCircle2, Command, Zap, Shield } from 'lucide-react';
+import { ArrowRight, CheckCircle2, Command, Zap, Shield, Globe } from 'lucide-react';
+import { useLanguage } from '@/components/LanguageContext';
 
 export default function LandingPage() {
+  const { t, language, setLanguage } = useLanguage();
+
+  const toggleLanguage = () => {
+    setLanguage(language === 'ko' ? 'en' : 'ko');
+  };
+
   return (
     <div className="min-h-screen bg-white text-zinc-900 selection:bg-zinc-900 selection:text-white overflow-hidden flex flex-col">
       
-      {/* Navbar Placeholder (Matches global nav height) */}
-      <div className="h-14"></div>
+      {/* Navbar Placeholder with Language Toggle */}
+      <div className="h-14 flex items-center justify-end px-6 max-w-7xl mx-auto w-full">
+        <button
+          onClick={toggleLanguage}
+          className="flex items-center px-3 py-1.5 rounded-md text-sm font-medium text-zinc-500 hover:text-zinc-900 hover:bg-zinc-50 transition-all"
+        >
+          <Globe className="h-4 w-4 mr-2" />
+          <span className={language === 'ko' ? 'font-bold text-zinc-900' : ''}>KR</span>
+          <span className="mx-1 text-zinc-300">|</span>
+          <span className={language === 'en' ? 'font-bold text-zinc-900' : ''}>EN</span>
+        </button>
+      </div>
 
-      <main className="flex-1 flex flex-col md:flex-row max-w-7xl mx-auto w-full px-6 lg:px-8 pt-12 md:pt-0">
+      <main className="flex-1 flex flex-col md:flex-row max-w-7xl mx-auto w-full px-6 lg:px-8 pt-4 md:pt-0">
         
         {/* Left Content */}
         <div className="flex-1 flex flex-col justify-center items-start z-10 md:pr-12">
@@ -25,17 +42,17 @@ export default function LandingPage() {
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-zinc-400 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-zinc-500"></span>
             </span>
-            Inventory System v2.0
+            {t.landing.badge}
           </motion.div>
 
           <motion.h1
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
-            className="text-5xl md:text-7xl font-bold tracking-tight text-zinc-900 mb-6 leading-[1.1]"
+            className="text-5xl md:text-7xl font-bold tracking-tight text-zinc-900 mb-6 leading-[1.1] whitespace-pre-line"
           >
-            Inventory <br />
-            <span className="text-zinc-400">Simplified.</span>
+            {t.landing.title}
+            <span className="text-zinc-400">{t.landing.titleSuffix}</span>
           </motion.h1>
 
           <motion.p
@@ -44,7 +61,7 @@ export default function LandingPage() {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="text-lg text-zinc-500 mb-8 max-w-lg leading-relaxed"
           >
-            Manage stock with precision. Real-time tracking, seamless integration, and powerful analytics in one minimal interface.
+            {t.landing.description}
           </motion.p>
 
           <motion.div
@@ -55,13 +72,13 @@ export default function LandingPage() {
           >
             <Link href="/inventory" className="w-full sm:w-auto">
               <button className="w-full sm:w-auto px-8 py-3.5 bg-zinc-900 hover:bg-zinc-800 text-white rounded-lg font-medium transition-all flex items-center justify-center gap-2 shadow-sm hover:shadow-md active:scale-95">
-                Start Managing
+                {t.landing.startBtn}
                 <ArrowRight className="w-4 h-4" />
               </button>
             </Link>
             <button className="w-full sm:w-auto px-8 py-3.5 bg-white border border-zinc-200 hover:bg-zinc-50 text-zinc-700 rounded-lg font-medium transition-all flex items-center justify-center gap-2">
               <Command className="w-4 h-4 text-zinc-400" />
-              Documentation
+              {t.landing.docsBtn}
             </button>
           </motion.div>
 
@@ -75,19 +92,19 @@ export default function LandingPage() {
             <div className="grid grid-cols-2 gap-4 text-sm text-zinc-500">
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4 text-zinc-900" />
-                <span>Real-time Sync</span>
+                <span>{t.landing.features.sync}</span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4 text-zinc-900" />
-                <span>Advanced Analytics</span>
+                <span>{t.landing.features.analytics}</span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4 text-zinc-900" />
-                <span>Team Collaboration</span>
+                <span>{t.landing.features.team}</span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4 text-zinc-900" />
-                <span>Export to Excel</span>
+                <span>{t.landing.features.export}</span>
               </div>
             </div>
           </motion.div>
@@ -155,9 +172,9 @@ export default function LandingPage() {
                 <div className="p-1.5 rounded bg-zinc-100">
                   <Zap className="w-4 h-4 text-zinc-900" />
                 </div>
-                <span className="text-sm font-semibold">Fast Sync</span>
+                <span className="text-sm font-semibold">{t.landing.floating.fast}</span>
               </div>
-              <div className="text-xs text-zinc-500">Updated just now</div>
+              <div className="text-xs text-zinc-500">{t.landing.floating.updated}</div>
             </motion.div>
 
             {/* Floating Element 2 */}
@@ -170,9 +187,9 @@ export default function LandingPage() {
                 <div className="p-1.5 rounded bg-zinc-100">
                   <Shield className="w-4 h-4 text-zinc-900" />
                 </div>
-                <span className="text-sm font-semibold">Secure</span>
+                <span className="text-sm font-semibold">{t.landing.floating.secure}</span>
               </div>
-              <div className="text-xs text-zinc-500">Encryption Active</div>
+              <div className="text-xs text-zinc-500">{t.landing.floating.encrypted}</div>
             </motion.div>
           </div>
         </motion.div>
@@ -182,7 +199,7 @@ export default function LandingPage() {
       {/* Footer Tech Stack */}
       <footer className="py-8 border-t border-zinc-100 mt-auto bg-white/50 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-6 text-center">
-          <p className="text-xs font-semibold text-zinc-400 uppercase tracking-widest mb-4">Built with modern stack</p>
+          <p className="text-xs font-semibold text-zinc-400 uppercase tracking-widest mb-4">{t.landing.footer}</p>
           <div className="flex justify-center gap-6 md:gap-12 grayscale opacity-40 hover:opacity-100 transition-opacity">
              <span className="text-sm font-bold">Next.js 15</span>
              <span className="text-sm font-bold">React 19</span>

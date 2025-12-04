@@ -1,10 +1,11 @@
 'use client'
 
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { Search, Plus, Download, Edit2, FileText, X, ArrowUpDown, Filter, Trash2 } from 'lucide-react'
+import { Search, Plus, Download, Edit2, X, ArrowUpDown, Filter, Trash2 } from 'lucide-react'
 import { supabase, InventoryItem } from '@/lib/supabase'
 import { useToast } from '@/components/Toast'
 import { handleError } from '@/lib/utils'
+import { useLanguage } from '@/components/LanguageContext'
 
 // Styled Combobox
 function Combobox({ 
@@ -115,6 +116,7 @@ function InboundModal({
   onSave: () => void
 }) {
   const { showToast } = useToast()
+  const { t } = useLanguage()
   const [companies, setCompanies] = useState<string[]>([])
   const [chajongs, setChajongs] = useState<string[]>([])
   const [pumbeons, setPumbeons] = useState<string[]>([])
@@ -234,7 +236,7 @@ function InboundModal({
 
       if (monthlyError) throw monthlyError
 
-      showToast('입고등록이 완료되었습니다.', 'success')
+      showToast(t.common.success, 'success')
       onSave()
       onClose()
     } catch (error) {
@@ -252,10 +254,11 @@ function InboundModal({
       <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[90vh] overflow-y-auto border border-zinc-200">
         <div className="p-8">
           <div className="flex justify-between items-center mb-8">
-            <h2 className="text-2xl font-bold text-zinc-900 tracking-tight">입고 등록</h2>
+            <h2 className="text-2xl font-bold text-zinc-900 tracking-tight">{t.inventory.modals.inboundTitle}</h2>
             <button
               onClick={onClose}
               className="p-2 rounded-lg text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100 transition-colors"
+              aria-label={t.inventory.modals.cancel}
             >
               <X className="h-5 w-5" />
             </button>
@@ -264,10 +267,10 @@ function InboundModal({
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
               {[
-                { label: '업체명', value: formData.company, key: 'company', options: companies, req: true },
-                { label: '차종', value: formData.chajong, key: 'chajong', options: chajongs, req: true },
-                { label: '품번', value: formData.pumbeon, key: 'pumbeon', options: pumbeons, req: true },
-                { label: '품명', value: formData.pm, key: 'pm', options: pms, req: false },
+                { label: t.inventory.modals.supplier, value: formData.company, key: 'company', options: companies, req: true },
+                { label: t.inventory.modals.model, value: formData.chajong, key: 'chajong', options: chajongs, req: true },
+                { label: t.inventory.modals.partNo, value: formData.pumbeon, key: 'pumbeon', options: pumbeons, req: true },
+                { label: t.inventory.modals.partName, value: formData.pm, key: 'pm', options: pms, req: false },
               ].map((field) => (
                 <div key={field.key}>
                   <label className="block text-sm font-medium text-zinc-700 mb-1.5">
@@ -277,23 +280,24 @@ function InboundModal({
                     value={field.value}
                     onChange={(value) => setFormData(prev => ({ ...prev, [field.key]: value }))}
                     options={field.options}
-                    placeholder={`${field.label} 입력`}
+                    placeholder={`${field.label}`}
                   />
                 </div>
               ))}
 
               <div>
-                <label className="block text-sm font-medium text-zinc-700 mb-1.5">입고일자</label>
-                <input
-                  type="date"
-                  value={formData.in_date}
-                  onChange={(e) => setFormData(prev => ({ ...prev, in_date: e.target.value }))}
-                  className="w-full px-3 py-2 bg-white border border-zinc-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:border-transparent"
-                />
+                <label className="block text-sm font-medium text-zinc-700 mb-1.5">{t.inventory.modals.inDate}</label>
+                  <input
+                    type="date"
+                    value={formData.in_date}
+                    onChange={(e) => setFormData(prev => ({ ...prev, in_date: e.target.value }))}
+                    className="w-full px-3 py-2 bg-white border border-zinc-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:border-transparent"
+                    aria-label={t.inventory.modals.inDate}
+                  />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-zinc-700 mb-1.5">입고수량</label>
+                <label className="block text-sm font-medium text-zinc-700 mb-1.5">{t.inventory.modals.inQty}</label>
                 <input
                   type="number"
                   value={formData.in_qty === 0 ? '' : formData.in_qty}
@@ -302,11 +306,12 @@ function InboundModal({
                   min="0"
                   className="w-full px-3 py-2 bg-white border border-zinc-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:border-transparent"
                   placeholder="0"
+                  aria-label={t.inventory.modals.inQty}
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-zinc-700 mb-1.5">발주수량</label>
+                <label className="block text-sm font-medium text-zinc-700 mb-1.5">{t.inventory.modals.orderQty}</label>
                 <input
                   type="number"
                   value={formData.order_qty === 0 ? '' : formData.order_qty}
@@ -315,18 +320,19 @@ function InboundModal({
                   min="0"
                   className="w-full px-3 py-2 bg-white border border-zinc-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:border-transparent"
                   placeholder="0"
+                  aria-label={t.inventory.modals.orderQty}
                 />
               </div>
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-zinc-700 mb-1.5">비고</label>
+              <label className="block text-sm font-medium text-zinc-700 mb-1.5">{t.inventory.modals.notes}</label>
               <textarea
                 value={formData.remark}
                 onChange={(e) => setFormData(prev => ({ ...prev, remark: e.target.value }))}
                 rows={3}
                 className="w-full px-3 py-2 bg-white border border-zinc-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:border-transparent resize-none"
-                placeholder="특이사항 입력"
+                placeholder={t.inventory.modals.notes}
               />
             </div>
 
@@ -336,14 +342,14 @@ function InboundModal({
                 onClick={onClose}
                 className="px-4 py-2 bg-white text-zinc-700 rounded-lg border border-zinc-200 hover:bg-zinc-50 font-medium text-sm transition-all"
               >
-                취소
+                {t.inventory.modals.cancel}
               </button>
               <button
                 type="submit"
                 disabled={loading}
                 className="px-4 py-2 bg-zinc-900 text-white rounded-lg hover:bg-zinc-800 disabled:opacity-50 font-medium text-sm transition-all shadow-sm"
               >
-                {loading ? '처리 중...' : '저장하기'}
+                {loading ? t.inventory.modals.saving : t.inventory.modals.save}
               </button>
             </div>
           </form>
@@ -366,6 +372,7 @@ function EditModal({
   onSave: () => void
 }) {
   const { showToast } = useToast()
+  const { t } = useLanguage()
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
     in_qty: item?.in_qty || 0,
@@ -440,7 +447,7 @@ function EditModal({
         if (historyError) console.error(historyError)
       }
 
-      showToast('수정이 완료되었습니다.', 'success')
+      showToast(t.common.success, 'success')
       onSave()
       onClose()
     } catch (error) {
@@ -453,7 +460,7 @@ function EditModal({
 
   const handleDelete = async () => {
     if (!item) return
-    if (!confirm('정말 삭제하시겠습니까?')) return
+    if (!confirm(t.common.confirm + '?')) return
 
     setLoading(true)
 
@@ -465,7 +472,7 @@ function EditModal({
 
       if (error) throw error
 
-      showToast('삭제가 완료되었습니다.', 'success')
+      showToast(t.common.success, 'success')
       onSave()
       onClose()
     } catch (error) {
@@ -483,10 +490,11 @@ function EditModal({
       <div className="bg-white rounded-xl shadow-2xl max-w-2xl w-full border border-zinc-200">
         <div className="p-8">
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-bold text-zinc-900">항목 수정</h2>
+            <h2 className="text-xl font-bold text-zinc-900">{t.inventory.modals.editTitle}</h2>
             <button
               onClick={onClose}
               className="p-2 rounded-lg text-zinc-400 hover:text-zinc-600 hover:bg-zinc-100"
+              aria-label={t.inventory.modals.cancel}
             >
               <X className="h-5 w-5" />
             </button>
@@ -494,32 +502,39 @@ function EditModal({
 
           <div className="mb-6 p-4 bg-zinc-50 rounded-lg border border-zinc-100 text-sm">
             <div className="grid grid-cols-2 gap-2">
-              <p className="text-zinc-500">업체명: <span className="text-zinc-900 font-medium">{item.company}</span></p>
-              <p className="text-zinc-500">차종: <span className="text-zinc-900 font-medium">{item.chajong}</span></p>
-              <p className="text-zinc-500">품번: <span className="text-zinc-900 font-medium">{item.pumbeon}</span></p>
-              <p className="text-zinc-500">품명: <span className="text-zinc-900 font-medium">{item.pm}</span></p>
+              <p className="text-zinc-500">{t.inventory.modals.supplier}: <span className="text-zinc-900 font-medium">{item.company}</span></p>
+              <p className="text-zinc-500">{t.inventory.modals.model}: <span className="text-zinc-900 font-medium">{item.chajong}</span></p>
+              <p className="text-zinc-500">{t.inventory.modals.partNo}: <span className="text-zinc-900 font-medium">{item.pumbeon}</span></p>
+              <p className="text-zinc-500">{t.inventory.modals.partName}: <span className="text-zinc-900 font-medium">{item.pm}</span></p>
             </div>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
-              {['in_qty', 'stock_qty', 'order_qty', 'out_qty'].map((field) => (
-                <div key={field}>
+              {[
+                { key: 'in_qty', label: t.inventory.modals.inQty },
+                { key: 'stock_qty', label: t.inventory.columns.stock },
+                { key: 'order_qty', label: t.inventory.modals.orderQty },
+                { key: 'out_qty', label: t.inventory.columns.outbound }
+              ].map((field) => (
+                <div key={field.key}>
                   <label className="block text-sm font-medium text-zinc-700 mb-1.5">
-                    {field === 'in_qty' ? '입고' : field === 'stock_qty' ? '재고' : field === 'order_qty' ? '발주' : '반출'}
+                    {field.label}
                   </label>
                   <input
                     type="number"
-                    value={formData[field as keyof typeof formData] as number}
-                    onChange={(e) => setFormData(prev => ({ ...prev, [field]: parseInt(e.target.value) || 0 }))}
+                    value={formData[field.key as keyof typeof formData] as number}
+                    onChange={(e) => setFormData(prev => ({ ...prev, [field.key]: parseInt(e.target.value) || 0 }))}
                     className="w-full px-3 py-2 bg-white border border-zinc-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 focus:border-transparent"
+                    placeholder="0"
+                    aria-label={field.label}
                   />
                 </div>
               ))}
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-zinc-700 mb-1.5">비고</label>
+              <label className="block text-sm font-medium text-zinc-700 mb-1.5">{t.inventory.modals.notes}</label>
               <textarea
                 value={formData.remark}
                 onChange={(e) => setFormData(prev => ({ ...prev, remark: e.target.value }))}
@@ -536,7 +551,7 @@ function EditModal({
                 className="flex items-center gap-2 px-4 py-2 text-red-600 hover:bg-red-50 rounded-lg text-sm font-medium transition-colors"
               >
                 <Trash2 className="w-4 h-4" />
-                삭제하기
+                {t.inventory.modals.delete}
               </button>
               <div className="flex gap-3">
                 <button
@@ -544,14 +559,14 @@ function EditModal({
                   onClick={onClose}
                   className="px-4 py-2 bg-white text-zinc-700 rounded-lg border border-zinc-200 hover:bg-zinc-50 font-medium text-sm transition-all"
                 >
-                  취소
+                  {t.inventory.modals.cancel}
                 </button>
                 <button
                   type="submit"
                   disabled={loading}
                   className="px-4 py-2 bg-zinc-900 text-white rounded-lg hover:bg-zinc-800 disabled:opacity-50 font-medium text-sm transition-all shadow-sm"
                 >
-                  저장 완료
+                  {t.inventory.modals.save}
                 </button>
               </div>
             </div>
@@ -565,6 +580,7 @@ function EditModal({
 // Main Page
 export default function Home() {
   const { showToast } = useToast()
+  const { t } = useLanguage()
   const [data, setData] = useState<InventoryItem[]>([])
   const [companies, setCompanies] = useState<string[]>([])
   const [chajongs, setChajongs] = useState<string[]>([])
@@ -691,7 +707,18 @@ export default function Home() {
   }, [loadData, loadOptions, loadMonths])
 
   const exportCSV = () => {
-    const headers = ['업체명', '차종', '품번', '품명', '입고', '재고', '미입고/과입고', '발주수량', '반출', '비고']
+    const headers = [
+      t.inventory.columns.company,
+      t.inventory.columns.model,
+      t.inventory.columns.partNo,
+      t.inventory.columns.partName,
+      t.inventory.columns.inbound,
+      t.inventory.columns.stock,
+      t.inventory.columns.shortage,
+      t.inventory.columns.order,
+      t.inventory.columns.outbound,
+      t.inventory.columns.note
+    ]
     const csvContent = [headers.join(','), ...data.map(item => [item.company, item.chajong, item.pumbeon, item.pm, item.in_qty, item.stock_qty, item.in_shortage, item.order_qty, item.out_qty, item.remark].join(','))].join('\n')
     const blob = new Blob(['\ufeff' + csvContent], { type: 'text/csv;charset=utf-8;' })
     const link = document.createElement('a')
@@ -745,7 +772,7 @@ export default function Home() {
 
       setEditingCell(null)
       loadData()
-      showToast('저장되었습니다.', 'success')
+      showToast(t.common.success, 'success')
     } catch (error) {
       const message = handleError(error, '셀 저장')
       showToast(message, 'error')
@@ -768,8 +795,8 @@ export default function Home() {
         {/* Header Section */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-2xl font-bold text-zinc-900 tracking-tight">Inventory Status</h1>
-            <p className="text-sm text-zinc-500 mt-1">Manage your stock levels and orders in real-time.</p>
+            <h1 className="text-2xl font-bold text-zinc-900 tracking-tight">{t.inventory.title}</h1>
+            <p className="text-sm text-zinc-500 mt-1">{t.inventory.description}</p>
           </div>
           <div className="flex gap-3">
             <button
@@ -777,14 +804,14 @@ export default function Home() {
               className="flex items-center justify-center px-4 py-2 bg-zinc-900 text-white rounded-lg hover:bg-zinc-800 transition-all shadow-sm text-sm font-medium"
             >
               <Plus className="h-4 w-4 mr-2" />
-              Add Item
+              {t.inventory.addItem}
             </button>
             <button
               onClick={exportCSV}
               className="flex items-center justify-center px-4 py-2 bg-white text-zinc-700 rounded-lg border border-zinc-200 hover:bg-zinc-50 transition-all text-sm font-medium"
             >
               <Download className="h-4 w-4 mr-2" />
-              Export CSV
+              {t.inventory.exportCsv}
             </button>
           </div>
         </div>
@@ -797,19 +824,20 @@ export default function Home() {
                 value={filters.month}
                 onChange={(e) => setFilters(prev => ({ ...prev, month: e.target.value }))}
                 className="w-full pl-3 pr-10 py-2 bg-white border border-zinc-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900 appearance-none"
+                aria-label="Filter by month"
               >
                 {months.map(month => <option key={month} value={month}>{month}</option>)}
               </select>
               <Filter className="absolute right-3 top-2.5 h-4 w-4 text-zinc-400 pointer-events-none" />
             </div>
-            <Combobox value={filters.company} onChange={(v) => setFilters(p => ({ ...p, company: v }))} options={companies} placeholder="업체명 검색" />
-            <Combobox value={filters.chajong} onChange={(v) => setFilters(p => ({ ...p, chajong: v }))} options={chajongs} placeholder="차종 검색" />
-            <Combobox value={filters.pumbeon} onChange={(v) => setFilters(p => ({ ...p, pumbeon: v }))} options={pumbeons} placeholder="품번 검색" />
+            <Combobox value={filters.company} onChange={(v) => setFilters(p => ({ ...p, company: v }))} options={companies} placeholder={t.inventory.placeholders.company} />
+            <Combobox value={filters.chajong} onChange={(v) => setFilters(p => ({ ...p, chajong: v }))} options={chajongs} placeholder={t.inventory.placeholders.model} />
+            <Combobox value={filters.pumbeon} onChange={(v) => setFilters(p => ({ ...p, pumbeon: v }))} options={pumbeons} placeholder={t.inventory.placeholders.partNo} />
             <button
               onClick={loadData}
               className="w-full px-4 py-2 bg-white text-zinc-900 border border-zinc-200 rounded-lg hover:bg-zinc-50 transition-all text-sm font-medium"
             >
-              Apply Filters
+              {t.inventory.applyFilters}
             </button>
           </div>
         </div>
@@ -821,15 +849,15 @@ export default function Home() {
               <thead className="bg-zinc-50">
                 <tr>
                   {[
-                    { key: 'company', label: 'Company' },
-                    { key: 'chajong', label: 'Model' },
-                    { key: 'pumbeon', label: 'Part No' },
-                    { key: 'pm', label: 'Part Name' },
-                    { key: 'in_qty', label: 'Inbound', align: 'right' },
-                    { key: 'stock_qty', label: 'Stock', align: 'right' },
-                    { key: 'in_shortage', label: 'Shortage', align: 'right' },
-                    { key: 'order_qty', label: 'Order', align: 'right' },
-                    { key: 'out_qty', label: 'Outbound', align: 'right' },
+                    { key: 'company', label: t.inventory.columns.company },
+                    { key: 'chajong', label: t.inventory.columns.model },
+                    { key: 'pumbeon', label: t.inventory.columns.partNo },
+                    { key: 'pm', label: t.inventory.columns.partName },
+                    { key: 'in_qty', label: t.inventory.columns.inbound, align: 'right' },
+                    { key: 'stock_qty', label: t.inventory.columns.stock, align: 'right' },
+                    { key: 'in_shortage', label: t.inventory.columns.shortage, align: 'right' },
+                    { key: 'order_qty', label: t.inventory.columns.order, align: 'right' },
+                    { key: 'out_qty', label: t.inventory.columns.outbound, align: 'right' },
                   ].map((col) => (
                     <th 
                       key={col.key}
@@ -842,15 +870,15 @@ export default function Home() {
                       </div>
                     </th>
                   ))}
-                  <th className="px-6 py-3 text-left text-xs font-semibold text-zinc-500 uppercase tracking-wider">Note</th>
-                  <th className="px-6 py-3 text-center text-xs font-semibold text-zinc-500 uppercase tracking-wider">Action</th>
+                  <th className="px-6 py-3 text-left text-xs font-semibold text-zinc-500 uppercase tracking-wider">{t.inventory.columns.note}</th>
+                  <th className="px-6 py-3 text-center text-xs font-semibold text-zinc-500 uppercase tracking-wider">{t.inventory.columns.action}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-100">
                 {loading ? (
-                  <tr><td colSpan={11} className="px-6 py-12 text-center text-zinc-500">Loading data...</td></tr>
+                  <tr><td colSpan={11} className="px-6 py-12 text-center text-zinc-500">{t.inventory.loading}</td></tr>
                 ) : paginatedData.length === 0 ? (
-                  <tr><td colSpan={11} className="px-6 py-12 text-center text-zinc-500">No data found</td></tr>
+                  <tr><td colSpan={11} className="px-6 py-12 text-center text-zinc-500">{t.inventory.noData}</td></tr>
                 ) : (
                   paginatedData.map((item) => (
                     <tr key={item.id} className="hover:bg-zinc-50 transition-colors group">
@@ -879,6 +907,7 @@ export default function Home() {
                               }}
                               className="w-20 px-1 py-0.5 text-right border border-zinc-900 rounded bg-white text-sm focus:outline-none"
                               onClick={(e) => e.stopPropagation()}
+                              aria-label={`Edit ${field}`}
                             />
                           ) : (
                             <span className={field === 'stock_qty' && item.stock_qty < 0 ? 'text-red-600 font-medium' : 'text-zinc-700'}>
@@ -903,6 +932,7 @@ export default function Home() {
                         <button
                           onClick={(e) => { e.stopPropagation(); setSelectedItem(item); setShowEditModal(true) }}
                           className="p-1.5 rounded-md text-zinc-400 hover:text-zinc-900 hover:bg-zinc-100 transition-colors"
+                          aria-label={t.inventory.modals.editTitle}
                         >
                           <Edit2 className="h-4 w-4" />
                         </button>
@@ -917,11 +947,12 @@ export default function Home() {
           {/* Pagination */}
           <div className="border-t border-zinc-200 px-6 py-4 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <span className="text-sm text-zinc-500">Show</span>
+              <span className="text-sm text-zinc-500">{t.inventory.pagination.show}</span>
               <select 
                 value={itemsPerPage} 
                 onChange={(e) => { setItemsPerPage(Number(e.target.value)); setCurrentPage(1) }}
                 className="text-sm border border-zinc-200 rounded px-2 py-1 focus:ring-zinc-900"
+                aria-label="Rows per page"
               >
                 <option value={15}>15</option>
                 <option value={50}>50</option>
@@ -935,15 +966,15 @@ export default function Home() {
                 disabled={currentPage === 1}
                 className="px-3 py-1 text-sm border border-zinc-200 rounded hover:bg-zinc-50 disabled:opacity-50"
               >
-                Previous
+                {t.inventory.pagination.previous}
               </button>
-              <span className="text-sm text-zinc-600">Page {currentPage} of {totalPages}</span>
+              <span className="text-sm text-zinc-600">{t.inventory.pagination.page} {currentPage} / {totalPages}</span>
               <button
                 onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                 disabled={currentPage === totalPages}
                 className="px-3 py-1 text-sm border border-zinc-200 rounded hover:bg-zinc-50 disabled:opacity-50"
               >
-                Next
+                {t.inventory.pagination.next}
               </button>
             </div>
           </div>

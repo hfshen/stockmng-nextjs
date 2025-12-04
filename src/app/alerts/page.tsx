@@ -5,6 +5,7 @@ import { AlertTriangle, Bell, CheckCircle, XCircle, Package, Edit, ArrowLeft, Re
 import { supabase, InventoryItem, EditHistory } from '@/lib/supabase'
 import { handleError } from '@/lib/utils'
 import Link from 'next/link'
+import { useLanguage } from '@/components/LanguageContext'
 
 interface Alert {
   id: string
@@ -18,6 +19,7 @@ interface Alert {
 }
 
 export default function Alerts() {
+  const { t } = useLanguage()
   const [alerts, setAlerts] = useState<Alert[]>([])
   const [loading, setLoading] = useState(true)
   const [dismissedAlerts, setDismissedAlerts] = useState<Set<string>>(new Set())
@@ -47,7 +49,7 @@ export default function Alerts() {
             newAlerts.push({
               id: `edit_history_${history.id}`,
               type: 'edit_history',
-              title: 'Stock Updated',
+              title: t.alerts.types.stockUpdated,
               message: `${order.company} - ${order.pumbeon} information updated.`,
               priority: 'low',
               createdAt: history.created_at,
@@ -69,7 +71,7 @@ export default function Alerts() {
           newAlerts.push({
             id: `out_of_stock_${order.id}`,
             type: 'out_of_stock',
-            title: 'Out of Stock',
+            title: t.alerts.types.outOfStock,
             message: `${order.company} - ${order.pumbeon} is currently out of stock.`,
             item,
             priority: 'high',
@@ -79,7 +81,7 @@ export default function Alerts() {
           newAlerts.push({
             id: `low_stock_${order.id}`,
             type: 'low_stock',
-            title: 'Low Stock Warning',
+            title: t.alerts.types.lowStock,
             message: `${order.company} - ${order.pumbeon} has low stock (${stock}).`,
             item,
             priority: 'medium',
@@ -134,12 +136,12 @@ export default function Alerts() {
         <div className="mb-8">
           <Link href="/inventory" className="inline-flex items-center text-sm text-zinc-500 hover:text-zinc-900 mb-4 transition-colors">
             <ArrowLeft className="w-4 h-4 mr-1" />
-            Back to Inventory
+            {t.alerts.back}
           </Link>
           <div className="flex justify-between items-end">
              <div>
-                <h1 className="text-3xl font-bold text-zinc-900 tracking-tight">Alerts & Notifications</h1>
-                <p className="text-zinc-500 mt-2">Manage stock alerts and system notifications.</p>
+                <h1 className="text-3xl font-bold text-zinc-900 tracking-tight">{t.alerts.title}</h1>
+                <p className="text-zinc-500 mt-2">{t.alerts.description}</p>
              </div>
              <div className="flex gap-2">
                {selectedAlerts.size > 0 && (
@@ -151,7 +153,7 @@ export default function Alerts() {
                   className="flex items-center px-3 py-2 bg-white border border-zinc-200 text-red-600 rounded-lg text-sm font-medium hover:bg-red-50 transition-colors"
                  >
                    <Trash2 className="w-4 h-4 mr-2" />
-                   Dismiss Selected
+                   {t.alerts.dismissSelected}
                  </button>
                )}
                <button 
@@ -159,19 +161,19 @@ export default function Alerts() {
                 className="flex items-center px-3 py-2 bg-white border border-zinc-200 text-zinc-700 rounded-lg text-sm font-medium hover:bg-zinc-50 transition-colors"
                >
                  <RefreshCw className="w-4 h-4 mr-2" />
-                 Refresh
+                 {t.alerts.refresh}
                </button>
              </div>
           </div>
         </div>
 
         {loading ? (
-           <div className="py-12 text-center text-zinc-500">Loading alerts...</div>
+           <div className="py-12 text-center text-zinc-500">{t.alerts.loading}</div>
         ) : activeAlerts.length === 0 ? (
            <div className="bg-white rounded-xl border border-zinc-200 p-12 text-center">
               <CheckCircle className="w-12 h-12 text-green-500 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-zinc-900">All Good!</h3>
-              <p className="text-zinc-500">No pending alerts at the moment.</p>
+              <h3 className="text-lg font-medium text-zinc-900">{t.alerts.allGood}</h3>
+              <p className="text-zinc-500">{t.alerts.noAlerts}</p>
            </div>
         ) : (
           <div className="space-y-4">
@@ -187,6 +189,7 @@ export default function Alerts() {
                       checked={selectedAlerts.has(alert.id)}
                       onChange={() => toggleSelectAlert(alert.id)}
                       className="w-4 h-4 rounded border-zinc-300 text-zinc-900 focus:ring-zinc-900" 
+                      aria-label={`Select alert ${alert.title}`}
                     />
                   </div>
                   <div className="flex-1">
@@ -210,6 +213,7 @@ export default function Alerts() {
                   <button 
                     onClick={() => dismissAlert(alert.id)}
                     className="opacity-0 group-hover:opacity-100 p-1 hover:bg-black/5 rounded transition-all"
+                    aria-label="Dismiss alert"
                   >
                     <XCircle className="w-5 h-5 opacity-50" />
                   </button>

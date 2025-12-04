@@ -6,6 +6,7 @@ import { TrendingUp, TrendingDown, Package, AlertTriangle, ArrowLeft } from 'luc
 import { supabase } from '@/lib/supabase'
 import { handleError } from '@/lib/utils'
 import Link from 'next/link'
+import { useLanguage } from '@/components/LanguageContext'
 
 interface DashboardStats {
   totalItems: number
@@ -36,6 +37,7 @@ const StatCard = ({ title, value, icon: Icon, colorClass, subValue }: any) => (
 )
 
 export default function Dashboard() {
+  const { t } = useLanguage()
   const [stats, setStats] = useState<DashboardStats | null>(null)
   const [loading, setLoading] = useState(true)
   const [selectedMonth, setSelectedMonth] = useState(new Date().toISOString().slice(0, 7))
@@ -116,31 +118,32 @@ export default function Dashboard() {
            <div>
               <Link href="/inventory" className="inline-flex items-center text-sm text-zinc-500 hover:text-zinc-900 mb-4 transition-colors">
                 <ArrowLeft className="w-4 h-4 mr-1" />
-                Back to Inventory
+                {t.add.back}
               </Link>
-              <h1 className="text-3xl font-bold text-zinc-900 tracking-tight">Dashboard Overview</h1>
-              <p className="text-zinc-500 mt-2">Key metrics and performance indicators for {selectedMonth}.</p>
+              <h1 className="text-3xl font-bold text-zinc-900 tracking-tight">{t.dashboard.title}</h1>
+              <p className="text-zinc-500 mt-2">{t.dashboard.description}</p>
            </div>
            <input 
               type="month" 
               value={selectedMonth} 
               onChange={e => setSelectedMonth(e.target.value)}
+              aria-label="Select Month"
               className="px-4 py-2 bg-white border border-zinc-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-zinc-900"
            />
         </div>
 
         {/* Bento Grid Layout */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-           <StatCard title="Total Items" value={stats.totalItems} icon={Package} colorClass="bg-blue-500" subValue="Active SKUs" />
-           <StatCard title="Total Stock" value={stats.totalStock.toLocaleString()} icon={TrendingUp} colorClass="bg-green-500" subValue="Units on hand" />
-           <StatCard title="Low Stock" value={stats.lowStockItems} icon={AlertTriangle} colorClass="bg-amber-500" subValue="Need reordering" />
-           <StatCard title="Out of Stock" value={stats.outOfStockItems} icon={TrendingDown} colorClass="bg-red-500" subValue="Critical" />
+           <StatCard title={t.dashboard.totalItems} value={stats.totalItems} icon={Package} colorClass="bg-blue-500" subValue={t.dashboard.subValues.activeSku} />
+           <StatCard title={t.dashboard.totalStock} value={stats.totalStock.toLocaleString()} icon={TrendingUp} colorClass="bg-green-500" subValue={t.dashboard.subValues.onHand} />
+           <StatCard title={t.dashboard.lowStock} value={stats.lowStockItems} icon={AlertTriangle} colorClass="bg-amber-500" subValue={t.dashboard.subValues.reorder} />
+           <StatCard title={t.dashboard.outOfStock} value={stats.outOfStockItems} icon={TrendingDown} colorClass="bg-red-500" subValue={t.dashboard.subValues.critical} />
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
            {/* Chart 1: Trend */}
            <div className="lg:col-span-2 bg-white p-6 rounded-xl border border-zinc-200 shadow-sm">
-              <h3 className="font-semibold text-zinc-900 mb-6">Monthly Flow</h3>
+              <h3 className="font-semibold text-zinc-900 mb-6">{t.dashboard.monthlyFlow}</h3>
               <div className="h-64">
                  <ResponsiveContainer width="100%" height="100%">
                     <BarChart data={stats.monthlyTrend}>
@@ -148,8 +151,8 @@ export default function Dashboard() {
                        <XAxis dataKey="name" axisLine={false} tickLine={false} />
                        <YAxis axisLine={false} tickLine={false} />
                        <Tooltip cursor={{fill: '#f4f4f5'}} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)' }} />
-                       <Bar dataKey="incoming" fill="#18181b" radius={[4, 4, 0, 0]} />
-                       <Bar dataKey="outgoing" fill="#a1a1aa" radius={[4, 4, 0, 0]} />
+                       <Bar dataKey="incoming" fill="#18181b" radius={[4, 4, 0, 0]} name={t.dashboard.incoming} />
+                       <Bar dataKey="outgoing" fill="#a1a1aa" radius={[4, 4, 0, 0]} name={t.dashboard.outgoing} />
                     </BarChart>
                  </ResponsiveContainer>
               </div>
@@ -157,7 +160,7 @@ export default function Dashboard() {
 
            {/* Chart 2: Distribution */}
            <div className="bg-white p-6 rounded-xl border border-zinc-200 shadow-sm">
-              <h3 className="font-semibold text-zinc-900 mb-6">Category Distribution</h3>
+              <h3 className="font-semibold text-zinc-900 mb-6">{t.dashboard.categoryDist}</h3>
               <div className="h-64">
                  <ResponsiveContainer width="100%" height="100%">
                     <PieChart>

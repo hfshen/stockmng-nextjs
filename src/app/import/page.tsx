@@ -7,6 +7,7 @@ import { supabase } from '@/lib/supabase'
 import * as XLSX from 'xlsx'
 import { handleError } from '@/lib/utils'
 import Link from 'next/link'
+import { useLanguage } from '@/components/LanguageContext'
 
 interface UploadResult {
   success: number
@@ -15,6 +16,7 @@ interface UploadResult {
 }
 
 export default function Import() {
+  const { t } = useLanguage()
   const [file, setFile] = useState<File | null>(null)
   const [uploading, setUploading] = useState(false)
   const [result, setResult] = useState<UploadResult | null>(null)
@@ -166,19 +168,19 @@ export default function Import() {
         <div className="mb-8">
           <Link href="/inventory" className="inline-flex items-center text-sm text-zinc-500 hover:text-zinc-900 mb-4 transition-colors">
             <ArrowLeft className="w-4 h-4 mr-1" />
-            Back to Inventory
+            {t.import.back}
           </Link>
           <div className="flex justify-between items-end">
              <div>
-                <h1 className="text-3xl font-bold text-zinc-900 tracking-tight">Import Data</h1>
-                <p className="text-zinc-500 mt-2">Bulk upload inventory data using Excel files.</p>
+                <h1 className="text-3xl font-bold text-zinc-900 tracking-tight">{t.import.title}</h1>
+                <p className="text-zinc-500 mt-2">{t.import.description}</p>
              </div>
              <button
                 onClick={downloadTemplate}
                 className="flex items-center px-4 py-2 bg-white text-zinc-700 rounded-lg border border-zinc-200 hover:bg-zinc-50 text-sm font-medium transition-all"
               >
                 <Download className="h-4 w-4 mr-2" />
-                Download Template
+                {t.import.downloadTemplate}
               </button>
           </div>
         </div>
@@ -191,8 +193,8 @@ export default function Import() {
                     <Upload className="w-8 h-8 text-zinc-400" />
                  </div>
                  <label htmlFor="file-upload" className="cursor-pointer">
-                    <span className="text-zinc-900 font-semibold hover:underline">Click to upload</span>
-                    <span className="text-zinc-500"> or drag and drop</span>
+                    <span className="text-zinc-900 font-semibold hover:underline">{t.import.clickUpload}</span>
+                    <span className="text-zinc-500"> {t.import.dragDrop}</span>
                     <input
                       id="file-upload"
                       type="file"
@@ -201,7 +203,7 @@ export default function Import() {
                       className="hidden"
                     />
                  </label>
-                 <p className="text-xs text-zinc-400 mt-2">XLSX or XLS files only</p>
+                 <p className="text-xs text-zinc-400 mt-2">{t.import.fileType}</p>
               </div>
 
               {file && (
@@ -218,7 +220,7 @@ export default function Import() {
                       disabled={uploading}
                       className="px-4 py-2 bg-zinc-900 text-white rounded-lg hover:bg-zinc-800 disabled:opacity-50 text-sm font-medium transition-all"
                     >
-                      {uploading ? 'Uploading...' : 'Start Import'}
+                      {uploading ? t.import.uploading : t.import.startImport}
                     </button>
                  </div>
               )}
@@ -228,7 +230,7 @@ export default function Import() {
            {preview.length > 0 && (
              <div className="bg-white rounded-xl border border-zinc-200 overflow-hidden shadow-sm">
                 <div className="px-6 py-4 border-b border-zinc-100 bg-zinc-50/50">
-                   <h3 className="font-semibold text-zinc-900">File Preview (First 5 rows)</h3>
+                   <h3 className="font-semibold text-zinc-900">{t.import.preview}</h3>
                 </div>
                 <div className="overflow-x-auto">
                    <table className="w-full text-sm text-left">
@@ -260,13 +262,16 @@ export default function Import() {
                     {result.failed === 0 ? <CheckCircle className="w-6 h-6 text-green-600" /> : <AlertCircle className="w-6 h-6 text-amber-600" />}
                     <div>
                        <h3 className={`font-semibold ${result.failed === 0 ? 'text-green-900' : 'text-amber-900'}`}>
-                          Import Complete
+                          {t.import.complete}
                        </h3>
                        <p className={`text-sm mt-1 ${result.failed === 0 ? 'text-green-700' : 'text-amber-700'}`}>
-                          Successfully imported {result.success} items. {result.failed > 0 && `Failed to import ${result.failed} items.`}
+                          {result.failed === 0 
+                            ? t.import.successMsg.replace('{count}', result.success.toString()) 
+                            : t.import.failMsg.replace('{count}', result.failed.toString())}
                        </p>
                        {result.errors.length > 0 && (
                           <div className="mt-4 p-4 bg-white/50 rounded-lg">
+                             <h4 className="text-sm font-semibold mb-2">{t.import.errorTitle}</h4>
                              <ul className="text-sm space-y-1 text-red-600 list-disc list-inside">
                                 {result.errors.map((err, i) => (
                                    <li key={i}>{err}</li>

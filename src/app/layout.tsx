@@ -4,12 +4,13 @@ import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 import Navigation from "@/components/Navigation";
 import { ToastProvider } from "@/components/Toast";
+import { LanguageProvider } from "@/components/LanguageContext";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "㈜다성 입고관리 Tool",
-  description: "㈜다성 입고관리 Tool - 재고 관리 시스템",
+  title: "StockMng",
+  description: "Modern Inventory Management System",
 };
 
 export default function RootLayout({
@@ -18,13 +19,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ko">
+    <html lang="en">
       <body className={inter.className}>
-        <ToastProvider>
-          <Navigation />
-          {children}
-          <Analytics />
-        </ToastProvider>
+        <LanguageProvider>
+          <ToastProvider>
+            <Navigation />
+            {children}
+            <Analytics />
+          </ToastProvider>
+        </LanguageProvider>
       </body>
     </html>
   );
