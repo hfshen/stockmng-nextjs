@@ -28,7 +28,13 @@ export const dictionary = {
         updated: '방금 업데이트됨',
         encrypted: '암호화 활성'
       },
-      footer: '최신 기술 스택으로 구축됨'
+      footer: '최신 기술 스택으로 구축됨',
+      companyInfo: {
+        name: '주식회사 에스알국제 (SR International Inc.)',
+        address: '서울특별시 마포구 토정로 128, 4층',
+        contact: '02-332-6686 / hbshin@sr-kc.com',
+        copyright: '© 2025 SR International Inc. All rights reserved.'
+      }
     },
     inventory: {
       title: '재고 현황',
@@ -217,7 +223,13 @@ export const dictionary = {
         updated: 'Updated just now',
         encrypted: 'Encryption Active'
       },
-      footer: 'Built with modern stack'
+      footer: 'Built with modern stack',
+      companyInfo: {
+        name: 'SR International Inc.',
+        address: '4F, 128, Tojeong-ro, Mapo-gu, Seoul, Republic of Korea',
+        contact: '02-332-6686 / hbshin@sr-kc.com',
+        copyright: '© 2025 SR International Inc. All rights reserved.'
+      }
     },
     inventory: {
       title: 'Inventory Status',
@@ -381,4 +393,3 @@ export const dictionary = {
 
 export type Language = 'ko' | 'en'
 export type Dictionary = typeof dictionary.en
-

@@ -196,16 +196,29 @@ export default function LandingPage() {
 
       </main>
 
-      {/* Footer Tech Stack */}
+      {/* Footer Tech Stack & Company Info */}
       <footer className="py-8 border-t border-zinc-100 mt-auto bg-white/50 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-6 text-center">
-          <p className="text-xs font-semibold text-zinc-400 uppercase tracking-widest mb-4">{t.landing.footer}</p>
-          <div className="flex justify-center gap-6 md:gap-12 grayscale opacity-40 hover:opacity-100 transition-opacity">
-             <span className="text-sm font-bold">Next.js 15</span>
-             <span className="text-sm font-bold">React 19</span>
-             <span className="text-sm font-bold">TypeScript</span>
-             <span className="text-sm font-bold">Tailwind 4</span>
-             <span className="text-sm font-bold">Supabase</span>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8 text-left max-w-4xl mx-auto">
+            <div>
+              <h4 className="font-bold text-zinc-900 mb-2">{t.landing.companyInfo.name}</h4>
+              <p className="text-sm text-zinc-500">{t.landing.companyInfo.address}</p>
+              <p className="text-sm text-zinc-500">{t.landing.companyInfo.contact}</p>
+            </div>
+            <div className="text-left md:text-right">
+              <p className="text-xs font-semibold text-zinc-400 uppercase tracking-widest mb-4">{t.landing.footer}</p>
+              <div className="flex flex-wrap justify-start md:justify-end gap-4 grayscale opacity-40 hover:opacity-100 transition-opacity">
+                <span className="text-sm font-bold">Next.js 15</span>
+                <span className="text-sm font-bold">React 19</span>
+                <span className="text-sm font-bold">TypeScript</span>
+                <span className="text-sm font-bold">Supabase</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="pt-8 border-t border-zinc-100">
+            <p className="text-xs text-zinc-400">{t.landing.companyInfo.copyright}</p>
           </div>
         </div>
       </footer>
