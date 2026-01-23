@@ -44,10 +44,11 @@ export default function BoardDetail({ params }: { params: Promise<{ id: string }
                 if (isMounted) setPost(postData)
 
                 // 2. Increment View Count
-                await supabase.rpc('increment_view_count', { post_id: postId }).catch(() => {
+                const { error: rpcError } = await supabase.rpc('increment_view_count', { post_id: postId })
+                if (rpcError) {
                     // RPC가 없으면 클라이언트 사이드 업데이트 시도 (덜 정확함)
-                    supabase.from('board_posts').update({ view_count: (postData.view_count || 0) + 1 }).eq('id', postId)
-                })
+                    await supabase.from('board_posts').update({ view_count: (postData.view_count || 0) + 1 }).eq('id', postId)
+                }
 
                 // 3. Fetch Files
                 const { data: filesData, error: filesError } = await supabase
