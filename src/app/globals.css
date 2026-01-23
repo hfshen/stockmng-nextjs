@@ -3,33 +3,43 @@
 :root {
   /* Linear-style Light Theme Base */
   --background: #ffffff;
-  --foreground: #09090b; /* zinc-950 */
-  
+  --foreground: #09090b;
+  /* zinc-950 */
+
   --card: #ffffff;
   --card-foreground: #09090b;
-  
+
   --popover: #ffffff;
   --popover-foreground: #09090b;
-  
-  --primary: #18181b; /* zinc-900 (Deep Black) */
-  --primary-foreground: #fafafa; /* zinc-50 */
-  
-  --secondary: #f4f4f5; /* zinc-100 */
+
+  --primary: #18181b;
+  /* zinc-900 (Deep Black) */
+  --primary-foreground: #fafafa;
+  /* zinc-50 */
+
+  --secondary: #f4f4f5;
+  /* zinc-100 */
   --secondary-foreground: #18181b;
-  
-  --muted: #f4f4f5; /* zinc-100 */
-  --muted-foreground: #71717a; /* zinc-500 */
-  
-  --accent: #f4f4f5; /* zinc-100 */
+
+  --muted: #f4f4f5;
+  /* zinc-100 */
+  --muted-foreground: #52525b;
+  /* zinc-600 */
+
+  --accent: #f4f4f5;
+  /* zinc-100 */
   --accent-foreground: #18181b;
-  
-  --destructive: #ef4444; /* red-500 */
+
+  --destructive: #ef4444;
+  /* red-500 */
   --destructive-foreground: #fafafa;
-  
-  --border: #e4e4e7; /* zinc-200 */
+
+  --border: #e4e4e7;
+  /* zinc-200 */
   --input: #e4e4e7;
-  --ring: #18181b; /* zinc-900 */
-  
+  --ring: #18181b;
+  /* zinc-900 */
+
   --radius: 0.5rem;
 }
 
@@ -58,37 +68,7 @@
   --radius-sm: calc(var(--radius) - 4px);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #09090b; /* zinc-950 */
-    --foreground: #fafafa; /* zinc-50 */
-    
-    --card: #09090b;
-    --card-foreground: #fafafa;
-    
-    --popover: #09090b;
-    --popover-foreground: #fafafa;
-    
-    --primary: #fafafa; /* zinc-50 */
-    --primary-foreground: #18181b; /* zinc-900 */
-    
-    --secondary: #27272a; /* zinc-800 */
-    --secondary-foreground: #fafafa;
-    
-    --muted: #27272a;
-    --muted-foreground: #a1a1aa; /* zinc-400 */
-    
-    --accent: #27272a;
-    --accent-foreground: #fafafa;
-    
-    --destructive: #7f1d1d; /* red-900 */
-    --destructive-foreground: #fafafa;
-    
-    --border: #27272a; /* zinc-800 */
-    --input: #27272a;
-    --ring: #d4d4d8; /* zinc-300 */
-  }
-}
+/* Dark mode removed by user request */
 
 body {
   background: var(--background);
@@ -114,10 +94,12 @@ body {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #d4d4d8; /* zinc-300 */
+  background: #d4d4d8;
+  /* zinc-300 */
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #a1a1aa; /* zinc-400 */
+  background: #a1a1aa;
+  /* zinc-400 */
 }

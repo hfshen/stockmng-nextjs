@@ -81,3 +81,31 @@ export interface EditHistory {
   }[]
   created_at: string
 }
+
+export interface BoardPost {
+  id: number
+  company_name: string
+  title: string
+  content: string | null
+  author: string
+  view_count: number
+  is_notice: boolean
+  created_at: string
+}
+
+export interface BoardFile {
+  id: number
+  post_id: number
+  file_name: string
+  file_url: string
+  file_size: number | null
+  created_at: string
+}
+
+export interface CompanyAccount {
+  id: number
+  company_name: string
+  username: string
+  auth_user_id?: string
+  created_at: string
+}

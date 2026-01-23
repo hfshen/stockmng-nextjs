@@ -6,6 +6,7 @@ export const dictionary = {
       alerts: '알림 센터',
       add: '입고 등록',
       import: '데이터 가져오기',
+      board: '게시판',
       admin: '관리자',
       start: '시작하기'
     },
@@ -201,6 +202,7 @@ export const dictionary = {
       alerts: 'Alerts',
       add: 'Add Item',
       import: 'Import',
+      board: 'Board',
       admin: 'Admin',
       start: 'Start Managing'
     },

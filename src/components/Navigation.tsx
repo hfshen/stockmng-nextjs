@@ -3,17 +3,18 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { 
-  Home, 
-  Plus, 
-  BarChart3, 
-  Bell, 
+import {
+  Home,
+  Plus,
+  BarChart3,
+  Bell,
   Upload,
   Warehouse,
   Menu,
   X,
   Settings,
-  Globe
+  Globe,
+  ClipboardList
 } from 'lucide-react'
 import { useLanguage } from '@/components/LanguageContext'
 
@@ -28,6 +29,7 @@ export default function Navigation() {
     { name: t.nav.alerts, href: '/alerts', icon: Bell },
     { name: t.nav.add, href: '/add', icon: Plus },
     { name: t.nav.import, href: '/import', icon: Upload },
+    { name: t.nav.board, href: '/board', icon: ClipboardList },
     { name: t.nav.admin, href: '/admin', icon: Settings },
   ]
 
@@ -52,7 +54,7 @@ export default function Navigation() {
               <span className="text-sm font-semibold tracking-tight text-zinc-900">StockMng</span>
             </Link>
           </div>
-          
+
           {/* 데스크톱 메뉴 */}
           <div className="hidden md:flex items-center space-x-1">
             {navigation.map((item) => {
@@ -61,18 +63,17 @@ export default function Navigation() {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`flex items-center px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200 ${
-                    isActive
+                  className={`flex items-center px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200 ${isActive
                       ? 'bg-zinc-100 text-zinc-900'
                       : 'text-zinc-500 hover:text-zinc-900 hover:bg-zinc-50'
-                  }`}
+                    }`}
                 >
                   <item.icon className={`h-4 w-4 ${isActive ? 'text-zinc-900' : 'text-zinc-400 group-hover:text-zinc-900'} mr-2`} />
                   {item.name}
                 </Link>
               )
             })}
-            
+
             {/* 언어 토글 버튼 */}
             <div className="pl-2 ml-2 border-l border-zinc-200">
               <button
@@ -119,11 +120,10 @@ export default function Navigation() {
                     key={item.href}
                     href={item.href}
                     onClick={() => setIsMobileMenuOpen(false)}
-                    className={`flex items-center px-4 py-3 rounded-md text-sm font-medium transition-all ${
-                      isActive
+                    className={`flex items-center px-4 py-3 rounded-md text-sm font-medium transition-all ${isActive
                         ? 'bg-zinc-100 text-zinc-900'
                         : 'text-zinc-500 hover:text-zinc-900 hover:bg-zinc-50'
-                    }`}
+                      }`}
                   >
                     <item.icon className="h-4 w-4 mr-3" />
                     {item.name}

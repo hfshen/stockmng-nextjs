@@ -14,7 +14,7 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-white text-zinc-900 selection:bg-zinc-900 selection:text-white overflow-hidden flex flex-col">
-      
+
       {/* Navbar Placeholder with Language Toggle */}
       <div className="h-14 flex items-center justify-end px-6 max-w-7xl mx-auto w-full">
         <button
@@ -29,7 +29,7 @@ export default function LandingPage() {
       </div>
 
       <main className="flex-1 flex flex-col md:flex-row max-w-7xl mx-auto w-full px-6 lg:px-8 pt-4 md:pt-0">
-        
+
         {/* Left Content */}
         <div className="flex-1 flex flex-col justify-center items-start z-10 md:pr-12">
           <motion.div
@@ -70,7 +70,7 @@ export default function LandingPage() {
             transition={{ duration: 0.5, delay: 0.3 }}
             className="flex flex-col sm:flex-row gap-4 w-full sm:w-auto"
           >
-            <Link href="/inventory" className="w-full sm:w-auto">
+            <Link href="/login" className="w-full sm:w-auto">
               <button className="w-full sm:w-auto px-8 py-3.5 bg-zinc-900 hover:bg-zinc-800 text-white rounded-lg font-medium transition-all flex items-center justify-center gap-2 shadow-sm hover:shadow-md active:scale-95">
                 {t.landing.startBtn}
                 <ArrowRight className="w-4 h-4" />
@@ -83,7 +83,7 @@ export default function LandingPage() {
           </motion.div>
 
           {/* Feature List (Small) */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.6, duration: 0.8 }}
@@ -111,7 +111,7 @@ export default function LandingPage() {
         </div>
 
         {/* Right Visual (Abstract UI) */}
-        <motion.div 
+        <motion.div
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.7, delay: 0.4 }}
@@ -138,12 +138,12 @@ export default function LandingPage() {
                     <div className="w-16 h-2 rounded bg-zinc-100"></div>
                   </div>
                   <div className="w-1/3 h-24 bg-white rounded-lg border border-zinc-100 shadow-sm p-3">
-                     <div className="w-8 h-8 rounded bg-zinc-100 mb-2"></div>
-                     <div className="w-16 h-2 rounded bg-zinc-100"></div>
+                    <div className="w-8 h-8 rounded bg-zinc-100 mb-2"></div>
+                    <div className="w-16 h-2 rounded bg-zinc-100"></div>
                   </div>
                   <div className="w-1/3 h-24 bg-white rounded-lg border border-zinc-100 shadow-sm p-3">
-                     <div className="w-8 h-8 rounded bg-zinc-100 mb-2"></div>
-                     <div className="w-16 h-2 rounded bg-zinc-100"></div>
+                    <div className="w-8 h-8 rounded bg-zinc-100 mb-2"></div>
+                    <div className="w-16 h-2 rounded bg-zinc-100"></div>
                   </div>
                 </div>
                 <div className="flex-1 bg-white rounded-lg border border-zinc-100 shadow-sm p-4">
@@ -151,7 +151,7 @@ export default function LandingPage() {
                     <div className="w-32 h-4 rounded bg-zinc-100"></div>
                     <div className="w-16 h-4 rounded bg-zinc-100"></div>
                   </div>
-                  {[1,2,3,4].map(i => (
+                  {[1, 2, 3, 4].map(i => (
                     <div key={i} className="flex items-center gap-4 mb-3 last:mb-0">
                       <div className="w-8 h-8 rounded bg-zinc-50"></div>
                       <div className="flex-1 h-2 rounded bg-zinc-50"></div>
@@ -163,7 +163,7 @@ export default function LandingPage() {
             </div>
 
             {/* Floating Element 1 */}
-            <motion.div 
+            <motion.div
               animate={{ y: [0, -10, 0] }}
               transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
               className="absolute -right-8 top-20 w-48 p-4 bg-white rounded-lg border border-zinc-200 shadow-xl"
@@ -178,7 +178,7 @@ export default function LandingPage() {
             </motion.div>
 
             {/* Floating Element 2 */}
-            <motion.div 
+            <motion.div
               animate={{ y: [0, 10, 0] }}
               transition={{ repeat: Infinity, duration: 5, ease: "easeInOut", delay: 1 }}
               className="absolute -left-8 bottom-32 w-48 p-4 bg-white rounded-lg border border-zinc-200 shadow-xl"
@@ -199,7 +199,7 @@ export default function LandingPage() {
       {/* Footer Tech Stack & Company Info */}
       <footer className="py-8 border-t border-zinc-100 mt-auto bg-white/50 backdrop-blur-sm">
         <div className="max-w-7xl mx-auto px-6 text-center">
-          
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8 text-left max-w-4xl mx-auto">
             <div>
               <h4 className="font-bold text-zinc-900 mb-2">{t.landing.companyInfo.name}</h4>
