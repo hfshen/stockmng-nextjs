@@ -1,0 +1,6 @@
+SR CHINA ACCESS CHECK
+status=ok
+site=stockmng.sr-kc.com
+path=/china-health.txt
+purpose=Distinguish China-network/DNS/CDN reachability from application-level issues.
+updated=2026-09-21
